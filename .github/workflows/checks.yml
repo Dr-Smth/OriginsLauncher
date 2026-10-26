@@ -1,0 +1,35 @@
+name: Source and app checks
+on:
+  # Manual by default. Review runner availability and billing before enabling
+  # automatic triggers or changing the runner type.
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.14'
+      - name: Tests and clean-source audit
+        run: |
+          python3 -B -m unittest discover -s source/tests -v
+          python3 -B scripts/audit_release.py
+      - name: Build a self-contained local app
+        env:
+          DAO_BUILD_CACHE_DIR: ${{ runner.temp }}/origins-build-cache
+        run: bash source/build.sh "$RUNNER_TEMP/Origins Launcher.app"
+      - name: Empty-install smoke check
+        run: python3 -B scripts/smoke_app.py "$RUNNER_TEMP/Origins Launcher.app"
+      - name: Package source and local preview
+        run: python3 -B scripts/package_release.py --app "$RUNNER_TEMP/Origins Launcher.app" --output "$RUNNER_TEMP/release"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: origins-launcher-local-preview
+          path: ${{ runner.temp }}/release/
+          retention-days: 14
