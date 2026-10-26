@@ -1,0 +1,41 @@
+Aberrant Ink — Origins Launcher logo
+
+Copyright 2026 Aberrant Ink. All rights reserved except as stated below.
+
+Files covered by this notice:
+- dragon-logo.png: the original supplied artwork, unchanged.
+- app-icon.png: a preview placing the artwork over the existing Origins Launcher
+  background. These terms apply to the artist's logo and its renditions, not
+  to the independently licensed original background or fallback renderer.
+
+The logo is separate from the GPL-3.0-only code and documentation.
+Terms version: 2026-10-26-beta6.
+These revised terms apply to 0.2.0-beta.6 and later official builds carrying this
+notice. On 26 October 2026, David Richard Smith confirmed Aberrant Ink's approval:
+
+1. David Richard Smith may include the logo, rendered in the required icon
+   sizes, in official Origins Launcher builds.
+2. Anyone may install, run and display the logo within an unchanged official
+   build, including for business use, and share that build unchanged free of
+   charge. Preserve this artwork notice.
+3. Selling copies containing this artwork requires separate permission from
+   Aberrant Ink. This restriction applies to the artwork, not to commercial use
+   of the app or sale of the GPL-covered software without this artwork.
+4. Separate logo reuse, modifications to the artwork, or inclusion in a modified
+   or independently built fork requires separate permission from Aberrant Ink.
+
+These artwork terms do not restrict the GPL-covered code or uses permitted by
+applicable law. Distributors must also satisfy the applicable GPL requirements.
+No separate promotional, merchandise or trademark rights are granted here.
+
+Audited release source ZIPs retain this notice but exclude the two PNGs.
+GitHub-generated repository archives may include them under these separate terms.
+Default source builds use the original GPL fallback icon; versions without this
+artwork may be sold subject to the GPL and other applicable component licences.
+Official artwork builds carry an OFFICIAL-ARTWORK.json record; arbitrary
+custom-logo builds remain local-only.
+
+Beta.5's original artwork terms expressly permitted redistribution of unchanged
+official builds including sale. Its artifacts and embedded terms are unchanged.
+This revision does not revoke permissions already granted with beta.5, or
+withdraw separate or earlier permissions. See ARTWORK.md and docs/BUILDING.md.
