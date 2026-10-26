@@ -14,6 +14,23 @@ if you trust the download.
 · [Matching source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-source.zip)
 · [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/SHA256SUMS.txt)
 
+## See it in action
+
+<img width="800" alt="Origins Launcher showing launch status, display mode, UI size and resolution controls" src="https://github.com/user-attachments/assets/fcab7f38-e4fd-4fab-83de-f93466d44989" />
+
+The demo shows the launcher opening Dragon Age: Origins, loading a playable save and exiting the game on the tested Mac.
+
+https://github.com/user-attachments/assets/c6285d07-e5aa-4b58-be90-90414610729a
+
+<details>
+<summary>Demo credits</summary>
+
+Music: “Ascending the Vale” by Kevin MacLeod ([incompetech.com](https://www.incompetech.com/music/royalty-free/index.html?isrc=USUAN1600064)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Edited for length, volume and fades.
+
+Opening and closing icon artwork by **Aberrant Ink**; see [artwork terms](ARTWORK.md). Artwork, music and game footage retain their respective rights and are not covered by the launcher's GPL licence.
+
+</details>
+
 ## What you need
 
 - An Apple Silicon Mac running macOS 26 or 27, with Rosetta available.
@@ -71,6 +88,14 @@ not update automatically. Use **Files** to find the environment and
 Sign-in stays in Steam. See [Privacy and data](docs/DATA.md) and
 [Troubleshooting](docs/TROUBLESHOOTING.md).
 
+## Why this exists
+
+I’d been feeling pretty nostalgic for Dragon Age and wanted to revisit Origins, it’s one of my all time favourite games, and the RPG that got 16yo me into RPGs.
+
+Only issue is I was away from my home for an extended period and only had my Mac with me. Turns out DA:O doesn’t run natively on Apple Silicon (makes sense it’s 17yo at this point), and I really didn’t want to have to run it via Windows on a VM.
+
+So, I created a native macOS launcher for it (with a lot of help from Codex). Since it’s actually working I thought I’d share it with you all in case it lets anyone else scratch that nostalgia itch.
+
 ## Build or contribute
 
 Use the [bug and compatibility report forms](https://github.com/Dr-Smth/OriginsLauncher/issues/new/choose)
@@ -124,3 +149,4 @@ exact source shipped with that installer. See the [release record](docs/RELEASE_
 This project is not endorsed by or affiliated with EA or its licensors, BioWare,
 Valve, Apple, Sikarugir or the Wine project. Product names identify compatibility
 and remain the trademarks of their respective owners.
+
