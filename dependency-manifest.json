@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "python": {
+    "version": "3.14.9",
+    "build": "20261021",
+    "architecture": "aarch64-apple-darwin",
+    "name": "cpython-3.14.9+20261021-aarch64-apple-darwin-install_only.tar.gz",
+    "root": "python",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261021/cpython-3.14.9%2B20261021-aarch64-apple-darwin-install_only.tar.gz",
+    "bytes": 26834117,
+    "sha256": "226d696642a8a53d03b4d5b255b1c319b1575a6d44bd723a953c9f507755e36a",
+    "distribution": "bundled in built app; not in source archive"
+  },
+  "runtime_template": {
+    "version": "1.0.24",
+    "url": "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.24.tar.xz",
+    "sha256": "4b5f89eeb9ef139936bdfad33d9b420b05ea4597cb7d63376674f7a8e171321c",
+    "bytes": 96198448,
+    "distribution": "downloaded directly from upstream on explicit setup; not bundled"
+  },
+  "wine_engine": {
+    "version": "WS12WineSikarugir11.0_1",
+    "url": "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir11.0_1.tar.xz",
+    "sha256": "67e29fb3d74f363af39c69ba11f9b13a79812c5db07cf4748672658e4a200a0e",
+    "bytes": 167322744,
+    "distribution": "downloaded directly from upstream on explicit setup; not bundled"
+  },
+  "dafix": {
+    "version": "0.0.3",
+    "url": "https://github.com/Lyall/DAFix/releases/download/v0.0.3/DAFix_v0.0.3.zip",
+    "sha256": "613a3d005da6d95ed773b3281e1d8518c71d91effd1ae32e27d6a5986b64059a",
+    "bytes": 1191813,
+    "distribution": "optional explicit user download; not bundled"
+  },
+  "steam": {
+    "url": "https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe",
+    "distribution": "official Valve download on setup; mutable upstream installer; observed hash recorded locally"
+  },
+  "python_licenses": {
+    "name": "cpython-3.14.9+20261021-aarch64-apple-darwin-pgo+lto-full.tar.zst",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261021/cpython-3.14.9%2B20261021-aarch64-apple-darwin-pgo%2Blto-full.tar.zst",
+    "bytes": 63579089,
+    "sha256": "6404c3ca06e7a8abf3bb5247bf359c8f06c3d0e1d0421a6c539b5457cd885537",
+    "distribution": "build-time input for exact dependency notices and PYTHON.json; not bundled as an archive"
+  }
+}

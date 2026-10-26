@@ -1,0 +1,38 @@
+# Builds, downloaded dependencies and local runtime state
+/build/
+/dist/
+/artifacts/
+/runtime/
+/data/
+/downloads/
+/cache/
+/work/
+*.app/
+*.dmg
+*.zip
+*.tar.gz
+*.tar.xz
+*.tar.zst
+runtime-location.json
+
+# Python and macOS scratch files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+*.log
+*.reg
+*.dmp
+
+# Local settings and signing material
+.env
+.env.*
+*.p12
+*.p8
+*.key
+*.mobileprovision
+*.provisionprofile
+
+# Separately held artwork: official binary builds only
+/branding/aberrant-ink/dragon-logo.png
+/branding/aberrant-ink/app-icon.png
