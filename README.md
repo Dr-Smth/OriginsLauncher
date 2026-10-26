@@ -4,11 +4,11 @@ An unofficial macOS launcher for **Dragon Age: Origins**.
 
 It runs Steam and the game through Wine, without a Windows install/VM. The native app handles setup, launch and display settings.
 
-**[Download Origins Launcher beta.6 for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-arm64-UNSIGNED-BETA.dmg)**
+**[Download Origins Launcher for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-arm64-UNSIGNED-BETA.dmg)**
 
 This is an unsigned beta. macOS may block the first launch; follow the
 [Open Anyway instructions](docs/TROUBLESHOOTING.md#macos-will-not-open-a-downloaded-app)
-if you trust the download. No Windows installation is needed.
+if you trust the download.
 
 [Release notes and known limitations](https://github.com/Dr-Smth/OriginsLauncher/releases/tag/v0.2.0-beta.6)
 · [Matching source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-source.zip)
@@ -59,7 +59,7 @@ Save and quit the game before changing display settings. See
 [Display settings](docs/DISPLAY.md) for Retina, UI size and recovery guidance.
 **Do not** change resolution in game, as this can break things.
 
-## Your files
+## Your saves/files
 
 Game data is stored under `~/Library/Application Support/OriginsLauncher`, outside
 the app. Updating or removing the app does not by itself delete saves. Install
