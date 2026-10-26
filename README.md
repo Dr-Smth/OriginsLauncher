@@ -14,11 +14,9 @@ if you trust the download.
 · [Matching source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-source.zip)
 · [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/SHA256SUMS.txt)
 
-## See it in action
+## The App
 
 <img width="800" alt="Origins Launcher showing launch status, display mode, UI size and resolution controls" src="https://github.com/user-attachments/assets/fcab7f38-e4fd-4fab-83de-f93466d44989" />
-
-The demo shows the launcher opening Dragon Age: Origins, loading a playable save and exiting the game on the tested Mac.
 
 https://github.com/user-attachments/assets/c6285d07-e5aa-4b58-be90-90414610729a
 
