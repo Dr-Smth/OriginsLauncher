@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Dr-Smth/OriginsLauncher/security/policy
+    about: Read the security policy before sharing vulnerability details.
+  - name: Setup and troubleshooting
+    url: https://github.com/Dr-Smth/OriginsLauncher/blob/main/docs/TROUBLESHOOTING.md
+    about: Check installation, Steam, display and launch troubleshooting steps.
