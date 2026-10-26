@@ -66,6 +66,19 @@ frozen installer previously validated during private preparation. Its validation
 record and any later publication checks identify the exact artifact tested;
 this beta.3 observation does not establish beta.6 approval results.
 
+The exact beta.6 approval path was subsequently checked on 26 October 2026.
+Its normal browser download retained quarantine and matched the audited SHA-256.
+After Finder copied the app to Applications, all 1,743 installed app file/link
+entries matched the tested build. The tester observed macOS’s warning, approved
+**Open Anyway** in Settings, and confirmed the launcher opened normally.
+Gatekeeper stayed enabled. All 33 tracked game/save/settings files were unchanged
+after opening compared with the pre-opening baseline.
+
+That beta.6 check stopped at the installed launcher’s main window on the existing
+Mac/account; it did not start setup or retest gameplay. It does not establish
+anonymous public-host downloading, another Mac/account or managed-device policy
+behaviour. See [Release validation](RELEASE_STATUS.md#beta6-downloaded-app-opening-completed).
+
 ## Isolated fresh-install test
 
 A separate first-use test repaired an interrupted Windows-profile setup, then

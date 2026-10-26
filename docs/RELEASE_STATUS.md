@@ -46,16 +46,34 @@ app file/link entries matched the built app. The 33 checked existing game, save
 and configuration files were unchanged, and packaging did not replace the
 installed app.
 
-These package checks did not include a new gameplay session or downloaded-app
-Open Anyway test for beta.6. Historical observations below apply only to the
-versions and environment identified there. Any later exact-artifact approval
-or public-download check must be recorded explicitly. There is no automatic app
-updater.
+Those frozen package checks did not include a new gameplay session or
+downloaded-app Open Anyway test for beta.6. The later opening check is recorded
+below; historical observations apply only to the versions and environment
+identified. There is no automatic app updater.
 
 | Frozen beta.6 artifact | SHA-256 |
 | --- | --- |
 | `OriginsLauncher-0.2.0-beta.6-arm64-UNSIGNED-BETA.dmg` | `55bc81020a6f17095d5061cd1bee95243887778960763de211dd522371cab170` |
 | `OriginsLauncher-0.2.0-beta.6-source.zip` | `f2d8cbe6579ebb2417ee06c1934e7e97c239d17e05be596ef0d84a5bab7a320d` |
+
+## Beta.6 downloaded-app opening: completed
+
+On 26 October 2026, the exact beta.6 disk image was downloaded through the browser
+with normal quarantine and its SHA-256 matched the value above. Finder copied
+the app into Applications; all 1,743 installed app file/link entries matched the
+validated build (`0.2.0`, build `6`).
+
+The tester observed the macOS warning, personally approved **Open Anyway** in
+Settings, and confirmed that the launcher opened normally. Gatekeeper remained
+enabled. The check stopped at the installed main window without starting setup
+or the game. All 33 tracked game, settings and save files matched the pre-opening
+baseline when compared after successful opening.
+
+This establishes the exact beta.6 approval path on the existing test Mac/account.
+It is separate from the earlier beta.4 result and from a gameplay test. Another
+Mac/account, managed-device policies and anonymous public-host downloads are not
+established by this observation. The original frozen `VALIDATION.json` remains
+unchanged; this is later supplemental evidence.
 
 ## Historical beta.5 validation and artwork terms
 
