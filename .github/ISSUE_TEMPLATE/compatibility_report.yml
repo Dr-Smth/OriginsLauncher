@@ -1,0 +1,51 @@
+name: Compatibility report
+description: Share results from a Mac or display configuration, including successful tests.
+title: "[Compatibility]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report only what you observed. An untested feature is useful to record as untested. Preserve your existing saves and use a separate test save when possible.
+        Do not include account details, raw logs, game files or save files. Security vulnerabilities belong in the [security reporting channel](https://github.com/Dr-Smth/OriginsLauncher/security/policy).
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac model, chip, memory and macOS version
+    validations:
+      required: true
+  - type: input
+    id: software
+    attributes:
+      label: Launcher version and Steam game edition
+    validations:
+      required: true
+  - type: textarea
+    id: display
+    attributes:
+      label: Display and launcher selections
+      description: Include internal or external display, detected dimensions, Fullscreen or Windowed, resolution, UI size and optional DAFix status.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Observed results
+      description: Record pass, fail or not tested for each item. Describe any failures.
+      value: |
+        Fresh app setup and Steam sign-in:
+        Game download and prerequisite setup:
+        Main menu and rendered gameplay:
+        Mouse hover, clicks, movement and camera:
+        UI and dialogue readability:
+        Music, dialogue and sound effects:
+        Cutscenes:
+        Save, quit, relaunch and reload:
+        Installed content enabled (Ultimate Edition):
+        Approximate play time and performance:
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes or workarounds
+      description: Mention any additional mods, altered settings or steps outside the documented setup.

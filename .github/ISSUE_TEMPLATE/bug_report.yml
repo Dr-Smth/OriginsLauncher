@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a problem with setup, launching, display settings or gameplay.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping test Origins Launcher. For a security vulnerability, use the [security policy](https://github.com/Dr-Smth/OriginsLauncher/security/policy) instead of this form.
+        Never attach Steam credentials, account tokens, game files, saves, Wine prefixes or raw registry dumps. Review any diagnostic summary or screenshot and remove personal information before attaching it.
+  - type: input
+    id: version
+    attributes:
+      label: Launcher version
+      description: Use the release filename/version, or the version and build in Origins Launcher > About Origins Launcher. Include whether this is a release build or a build from source.
+      placeholder: 0.2.0-beta.3, unsigned beta
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac model, chip and macOS version
+      placeholder: MacBook Pro, Apple M-series chip, macOS version
+    validations:
+      required: true
+  - type: dropdown
+    id: edition
+    attributes:
+      label: Steam game edition
+      options:
+        - Dragon Age Origins - Ultimate Edition (47810)
+        - Dragon Age Origins (17450)
+        - Not installed yet
+        - Unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Where does the problem happen?
+      options:
+        - Opening the Mac app
+        - Compatibility runtime or Steam setup
+        - Steam update, sign-in or game download
+        - Game prerequisite installers or configuration
+        - Launching the game
+        - Display, UI size or mouse input
+        - Gameplay, audio or saves
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What happened, and how can we reproduce it?
+      description: Include the steps, expected result, actual result and exact error text. Mention whether it happens every time.
+    validations:
+      required: true
+  - type: textarea
+    id: display
+    attributes:
+      label: Display settings, if relevant
+      description: Include the detected display, internal or external monitor, Fullscreen or Windowed, resolution, UI size and whether optional DAFix scaling is installed. Describe picture, hover and click alignment separately.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Optional diagnostic summary or screenshots
+      description: Use the launcher's Diagnostics button, review the local summary, and paste only relevant redacted details. Do not attach a whole environment or account files.
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else that helps?
+      description: For example, whether this began after an update, any additional mods, or a workaround you tried.
