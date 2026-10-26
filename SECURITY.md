@@ -12,14 +12,14 @@ The project does not collect Steam credentials or upload diagnostic reports.
 
 Email **[security@xr0.io](mailto:security@xr0.io)** with the subject
 `OriginsLauncher security report`, or use **Security → Report a vulnerability**
-on [this repository's Security page](https://github.com/Dr-Smth/OriginsLauncher/security)
-when that option is available. Keep vulnerability details out of public issues.
+on [this repository's Security page](https://github.com/Dr-Smth/OriginsLauncher/security).
+Keep vulnerability details out of public issues.
 Do not send Steam credentials, account tokens, signing
 keys, personal logs, game files or exploitable user data.
 
-GitHub's private vulnerability-reporting feature sends the report to the
-maintainers without creating a public issue. If that option is unavailable,
-use the email address above. See
+GitHub private vulnerability reporting is enabled for this repository. It sends
+the report to the maintainers without creating a public issue. If you cannot use
+that route, use the email address above. See
 [GitHub's reporting documentation](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/report-privately).
 
 Include affected source/build versions, the impact, a minimal reproduction using
