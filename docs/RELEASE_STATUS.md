@@ -71,8 +71,8 @@ baseline when compared after successful opening.
 
 This establishes the exact beta.6 approval path on the existing test Mac/account.
 It is separate from the earlier beta.4 result and from a gameplay test. Another
-Mac/account, managed-device policies and anonymous public-host downloads are not
-established by this observation. The original frozen `VALIDATION.json` remains
+Mac/account and managed-device policies are not established by this observation.
+Anonymous public downloads were verified separately below. The original frozen `VALIDATION.json` remains
 unchanged; this is later supplemental evidence.
 
 ## Historical beta.5 validation and artwork terms
@@ -262,16 +262,33 @@ release blocker. Core gameplay and save/reload checks still stand.
 
 ## Public publication checks
 
-The public repository is a clean source snapshot, separate from the retained
-private maintenance history. Its release assets are the exact beta.6 installer
-and matching code source already described above. Keep bug-report and private
-security-reporting instructions aligned with the host's actual capabilities.
+Published and checked on 26 October 2026. The public tag `v0.2.0-beta.6` points to
+clean snapshot `d3725b65e7c9f31d57a2eee27daea90bad31841a`. Its 51 text files
+were checked against the staging snapshot; source and scripts match the frozen
+beta.6 code, with public documentation refreshed separately. Later documentation
+commits record these publication results without changing the tag or artifacts.
 
-Record an anonymous download and checksum check from the public release, the
-issue-form checks and the private reporting route before inviting testers.
-A normal drag-install test on another Mac/account remains recommended.
-Managed Macs may restrict Open Anyway even though it passed for beta.3 on the
-test Mac.
+All five anonymous HTTPS verification checks passed, without browser cookies or
+GitHub credentials:
+
+- The public main-branch ZIP returned HTTP 200 and contained exactly the 51
+  staged files, byte for byte, with no restricted artwork PNGs.
+- The public installer and exact-source ZIP each returned HTTP 200. Both complete
+  downloads matched the immutable beta.6 SHA-256 values above.
+- Requests for the old private build commit and `OriginsLauncher-maintenance`
+  returned HTTP 404. They were not accessible to those anonymous requests;
+  this does not claim deletion or revoke earlier permissions.
+
+GitHub's displayed SHA-256 values for all six published release assets matched
+the immutable local files. The issue chooser and both report forms rendered
+correctly during staging; no test issue was submitted. GitHub private
+vulnerability reporting is enabled, as confirmed in the public repository's
+Security overview. The maintainer confirms that `security@xr0.io` receives mail
+reliably; no independent delivery test was sent for this publication.
+
+A normal drag-install test on another Mac/account remains recommended. Managed
+Macs may restrict Open Anyway even though the exact beta.6 check passed on the
+test Mac. These publication checks did not start a new gameplay session.
 
 The historical beta.3 clean-app review found no known redistribution blocker
 within its reviewed scope. Beta.6 has separate final notice/artifact checks, recorded beside its packages.
@@ -288,8 +305,7 @@ are obtained separately and remain subject to their own terms.
   new recovery logic; that logic is unit tested.
 - DLC campaigns, other Apple Silicon models, external displays, all display
   presets and long play sessions have not been comprehensively tested.
-- Public-host downloading and normal drag-install on another Mac/account remain
-  unverified.
+- Normal drag-install and opening on another Mac/account remain unverified.
 
 These are test-coverage limitations to disclose for the beta, not claims that
 each is a legal prerequisite to distributing the clean launcher.

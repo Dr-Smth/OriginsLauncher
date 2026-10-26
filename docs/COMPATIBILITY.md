@@ -76,8 +76,17 @@ after opening compared with the pre-opening baseline.
 
 That beta.6 check stopped at the installed launcher’s main window on the existing
 Mac/account; it did not start setup or retest gameplay. It does not establish
-anonymous public-host downloading, another Mac/account or managed-device policy
-behaviour. See [Release validation](RELEASE_STATUS.md#beta6-downloaded-app-opening-completed).
+another Mac/account or managed-device policy behaviour. See
+[Release validation](RELEASE_STATUS.md#beta6-downloaded-app-opening-completed).
+
+Anonymous public downloads were verified separately on 26 October 2026. Both the
+installer and exact matching source ZIP returned HTTP 200 without authentication
+and matched their immutable beta.6 SHA-256 values. The public main-branch ZIP
+contained all 51 staged files unchanged, with no restricted artwork PNGs. The
+public `v0.2.0-beta.6` tag identifies clean snapshot
+`d3725b65e7c9f31d57a2eee27daea90bad31841a`; later documentation commits record
+these results without changing the installer, exact source ZIP or tag. See
+[Publication checks](RELEASE_STATUS.md#public-publication-checks).
 
 ## Isolated fresh-install test
 
@@ -124,19 +133,18 @@ Core gameplay and save/reload after relaunch remain verified by the tester.
 - DLC campaigns remain unverified.
 - Other Apple Silicon models, external displays, display-scale changes, all
   presets and long play sessions have not been comprehensively tested.
-- Public-host download and normal drag-install on another Mac/account remain
-  unverified.
+- Normal drag-install and opening on another Mac/account remain unverified.
 
 These limitations must accompany the beta; they do not undo the completed core
-functional test. Final-package auditing and Apple's per-app approval path passed
-for the exact unsigned beta.3 artifacts within the scope above. Repeat those
-checks when the package changes; use Developer ID/notarization for the signed
-release. See [Releasing](RELEASING.md).
+functional test. Exact beta.6 packaging, opening and public-download checks above
+supplement the earlier beta.3 evidence. Repeat those checks when the package
+changes; use Developer ID/notarization for the signed release. See
+[Releasing](RELEASING.md).
 
-These package observations concern the frozen beta.3 artifacts, which retain
-their supplied MIT terms. The beta.6 GPL release is packaged separately and its
-artifact checks must be recorded separately. This document does not claim that
-the new beta.6 app has repeated all historical gameplay tests. See
+Historical beta.3 package observations concern artifacts that retain their
+supplied MIT terms. Beta.6 GPL artifact and publication checks are recorded
+separately. This document does not claim that beta.6 has repeated all historical
+gameplay tests. See
 [Release validation](RELEASE_STATUS.md).
 
 Automated tests validate controller and filesystem behaviour. Process/log checks
