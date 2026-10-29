@@ -4,15 +4,16 @@ An unofficial macOS launcher for **Dragon Age: Origins**.
 
 It runs Steam and the game through Wine, without a Windows install/VM. The native app handles setup, launch and display settings.
 
-**[Download Origins Launcher for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-arm64-UNSIGNED-BETA.dmg)**
+**[Download Origins Launcher for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/OriginsLauncher-0.2.0-beta.7-arm64-UNSIGNED-BETA.dmg)**
 
 This is an unsigned beta. macOS may block the first launch; follow the
 [Open Anyway instructions](docs/TROUBLESHOOTING.md#macos-will-not-open-a-downloaded-app)
 if you trust the download.
 
-[Release notes and known limitations](https://github.com/Dr-Smth/OriginsLauncher/releases/tag/v0.2.0-beta.6)
-· [Matching source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/OriginsLauncher-0.2.0-beta.6-source.zip)
-· [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.6/SHA256SUMS.txt)
+[Release notes and known limitations](https://github.com/Dr-Smth/OriginsLauncher/releases/tag/v0.2.0-beta.7)
+· [Launcher source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/OriginsLauncher-0.2.0-beta.7-source.zip)
+· [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/SHA256SUMS.txt)
+· [Audio component source](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/origins-audio-1.0.0-beta.1-source.tar.gz)
 
 ## The App
 
@@ -74,6 +75,19 @@ Save and quit the game before changing display settings. See
 [Display settings](docs/DISPLAY.md) for Retina, UI size and recovery guidance.
 **Do not** change resolution in game, as this can break things.
 
+## Audio and memory support
+
+Beta.7 includes automatic DA:O-only audio compatibility for supported game and
+runtime versions, aimed at reducing crackling and repeated dialogue. No audio
+switch or separate download is needed. Optional **4 GB memory support** in the
+launcher lets DA:O use a larger address space without changing the Steam game
+executable; it does not add physical RAM.
+
+Both features and save/reload after restarting were tested together on an M5 Pro
+MacBook. A brief audio issue cleared itself; this is not a claim of completely
+fault-free audio. The M1 Air reports have not yet been retested with this fix.
+See [Audio compatibility](docs/AUDIO.md) for scope and current limitations.
+
 ## Your saves/files
 
 Game data is stored under `~/Library/Application Support/OriginsLauncher`, outside
@@ -102,8 +116,9 @@ reports. The
 [installer copy catalogue](docs/INSTALLER-COPY.md) includes the project-owned
 setup screens, disclosures, buttons and status/error text for wording reviews.
 
-On an Apple Silicon Mac with Xcode command-line tools and Python 3, run from the
-repository root:
+On an Apple Silicon Mac with Xcode command-line tools and Python 3, first build
+the audio component using [Building](docs/BUILDING.md#audio-component-build).
+Then run from the repository root:
 
 ```sh
 bash source/build.sh "$PWD/../Origins Launcher.app"
