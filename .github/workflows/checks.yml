@@ -1,7 +1,7 @@
-name: Source and app checks
+name: Source and audio checks
 on:
-  # Manual by default. Review runner availability and billing before enabling
-  # automatic triggers or changing the runner type.
+  # Manual only. Runner charges depend on repository visibility and the account
+  # plan/allowance. Enable automatic triggers deliberately.
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,16 +20,12 @@ jobs:
         run: |
           python3 -B -m unittest discover -s source/tests -v
           python3 -B scripts/audit_release.py
-      - name: Build a self-contained local app
+      # App/release checks need the separately provisioned, hash-pinned audio
+      # binary and matching source archive. Do not imply these checks build or
+      # validate a release app/installer, or fetch an unpinned replacement.
+      - name: Audio policy and adapter checks
         env:
-          DAO_BUILD_CACHE_DIR: ${{ runner.temp }}/origins-build-cache
-        run: bash source/build.sh "$RUNNER_TEMP/Origins Launcher.app"
-      - name: Empty-install smoke check
-        run: python3 -B scripts/smoke_app.py "$RUNNER_TEMP/Origins Launcher.app"
-      - name: Package source and local preview
-        run: python3 -B scripts/package_release.py --app "$RUNNER_TEMP/Origins Launcher.app" --output "$RUNNER_TEMP/release"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: origins-launcher-local-preview
-          path: ${{ runner.temp }}/release/
-          retention-days: 14
+          ORIGINS_AUDIO_TEST_OUTPUT: ${{ runner.temp }}/origins-audio-tests
+        run: |
+          python3 -B audio-compat/tests/test_policy.py
+          python3 -B audio-compat/tests/test_adapter.py

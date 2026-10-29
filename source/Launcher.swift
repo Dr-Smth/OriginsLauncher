@@ -31,6 +31,13 @@ private struct LauncherStatus: Decodable {
     var configuration_ready: Bool?
     var steam_maintenance_active: Bool?
     var steam_maintenance_message: String?
+    var laa_supported: Bool?
+    var laa_enabled: Bool?
+    var laa_message: String?
+    var audio_fix_supported: Bool?
+    var audio_fix_enabled: Bool?
+    var audio_fix_managed: Bool?
+    var audio_fix_message: String?
     var phase: String
     var message: String
     var log_path: String
@@ -247,15 +254,20 @@ private final class LauncherModel: ObservableObject {
     @Published var selectedPresetID = ""
     @Published var selectedUISize = "comfortable"
     @Published var selectedDisplayMode = "fullscreen"
+    @Published private(set) var selectedLargeAddressAware = false
     private var statusRequest = 0
     private var displayRequest = 0
     private var displayFetchFailed = false
     private var displayDefaultsChosen = false
     private let displayPreferenceKey = "display-selection-v1"
+    private let largeAddressPreferenceKey = "large-address-aware-v1"
     private var timer: Timer?
     private var lastSteamMaintenanceStarted: Date?
 
     init() {
+        // Only an explicit choice saved by this UI opts in. A runtime already
+        // modified elsewhere must not silently enable the user's selection.
+        selectedLargeAddressAware = UserDefaults.standard.object(forKey: largeAddressPreferenceKey) as? Bool ?? false
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
@@ -412,7 +424,18 @@ private final class LauncherModel: ObservableObject {
             selectedDisplayPreset?.fullscreen == (selectedDisplayMode == "fullscreen")
     }
     var playArguments: [String] {
-        ["--preset", selectedPresetID, "--ui-size", selectedUISize]
+        ["--preset", selectedPresetID, "--ui-size", selectedUISize,
+         "--large-address-aware", selectedLargeAddressAware ? "on" : "off"]
+    }
+    var canChangeLargeAddressAware: Bool {
+        displaySettingsReady && status?.runtime_ready == true && !busy &&
+            status?.game_running != true && statusFetchError.isEmpty &&
+            (status?.laa_supported == true || selectedLargeAddressAware)
+    }
+    func chooseLargeAddressAware(_ enabled: Bool) {
+        guard canChangeLargeAddressAware, !enabled || status?.laa_supported == true else { return }
+        selectedLargeAddressAware = enabled
+        UserDefaults.standard.set(enabled, forKey: largeAddressPreferenceKey)
     }
     private func persistDisplaySelection() {
         guard canPlayWithDisplaySelection else { return }
@@ -498,6 +521,11 @@ private final class LauncherModel: ObservableObject {
                 isError = true
                 return
             }
+            guard !selectedLargeAddressAware || status?.laa_supported == true else {
+                notification = status?.laa_message ?? "4 GB memory support is unavailable for this runtime. Turn it off to use the normal memory limit."
+                isError = true
+                return
+            }
             persistDisplaySelection()
         }
         busy = true
@@ -527,7 +555,7 @@ private final class LauncherModel: ObservableObject {
                 let success = result.status == 0 && payload?["ok"] as? Bool != false
                 self.isError = !success
                 if success {
-                    self.notification = payload?["message"] as? String ?? "Operation completed."
+                    self.notification = command == "play" ? "" : (payload?["message"] as? String ?? "Operation completed.")
                     if command == "diagnostics" {
                         if let path = (payload?["report_path"] ?? payload?["path"]) as? String {
                             self.reveal(path)
@@ -711,6 +739,17 @@ private struct DisplaySettingsPanel: View {
                     .font(.system(size: 11)).foregroundStyle(model.displayIsError ? Palette.accentText : Palette.muted)
                     .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
+            Rectangle().fill(Palette.line).frame(height: 1)
+            VStack(alignment: .leading, spacing: 5) {
+                Toggle(isOn: Binding(get: { model.selectedLargeAddressAware }, set: { model.chooseLargeAddressAware($0) })) {
+                    Text("4 GB memory support · Experimental")
+                        .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.cream)
+                }
+                .toggleStyle(.switch).controlSize(.small).tint(Palette.accent)
+                .disabled(!model.canChangeLargeAddressAware)
+                .help("Allows a larger memory address space for Dragon Age: Origins only. This may help with memory-heavy play; it does not add physical RAM. Changes apply on the next launch.")
+            }
+
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.card).clipShape(RoundedRectangle(cornerRadius: 12))

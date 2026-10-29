@@ -371,6 +371,34 @@ class Controller:
                     or report["schema_version"] != 1 or report.get("source") != "user_report"
                     or report.get("appid") != game["appid"] or not confirmed_at(report.get("confirmed_at"))):
                 return False
+            # Historical gameplay reports do not validate a new Wine memory
+            # mode. A report for that mode must identify the exact native code.
+            from large_address import status as large_address_status
+            memory_mode = large_address_status(self)
+            if memory_mode.get("laa_managed") and not memory_mode["laa_supported"]:
+                return False
+            identity = report.get("runtime_identity")
+            if memory_mode["laa_enabled"] or identity is not None:
+                native = self.contents / "SharedSupport/wine/lib/wine/x86_64-unix/ntdll.so"
+                if (not isinstance(identity, dict)
+                        or type(identity.get("large_address_aware")) is not bool
+                        or identity["large_address_aware"] != memory_mode["laa_enabled"]
+                        or identity.get("ntdll_sha256") != hashlib.sha256(native.read_bytes()).hexdigest()):
+                    return False
+            # A baseline audio report cannot validate a different audio component.
+            from audio_fix import status as audio_fix_status
+            audio_mode = audio_fix_status(self, game)
+            if audio_mode.get("audio_fix_pending") or (audio_mode.get("audio_fix_managed") and not audio_mode["audio_fix_supported"]):
+                return False
+            audio_identity = report.get("audio_identity")
+            if audio_mode["audio_fix_enabled"] or audio_identity is not None:
+                audio_file = Path(game["exe"]).parent / "dsound.dll"
+                audio_hash = hashlib.sha256(audio_file.read_bytes()).hexdigest() if audio_mode["audio_fix_enabled"] else None
+                if (not isinstance(audio_identity, dict)
+                        or type(audio_identity.get("enabled")) is not bool
+                        or audio_identity["enabled"] != audio_mode["audio_fix_enabled"]
+                        or audio_identity.get("component_sha256") != audio_hash):
+                    return False
             # A display experiment is not validated merely because its numeric
             # resolution matches an older report. Recovery must finish first.
             display_state = self.data / "display-settings.json"
@@ -417,6 +445,8 @@ class Controller:
             return False
 
     def status(self) -> dict:
+        from large_address import status as large_address_status
+        from audio_fix import status as audio_fix_status
         supported = platform_status()
         state = self.state()
         games = discover_games(self.prefix) if self.prefix_ready() else []
@@ -491,7 +521,8 @@ class Controller:
                     storage_measured_at=state.get("storage_measured_at"),
                     phase=phase, message=message, log_path=str(self.logs),
                     data_path=str(self.prefix if self.prefix_ready() else self.data),
-                    installed_editions=games, compatibility_verified=verified, **maintenance_summary)
+                    installed_editions=games, compatibility_verified=verified,
+                    **large_address_status(self), **audio_fix_status(self, game), **maintenance_summary)
 
     def launch_wss(self, args: list[str], name: str) -> tuple[subprocess.Popen, Path]:
         self.require_runtime()
@@ -674,7 +705,95 @@ class Controller:
         result["message"] = f"Asked Windows Steam to install {GAMES[appid]}. Sign in and confirm the download there; this does not purchase the game."
         return result
 
-    def play(self, appid=None, preset=None, ui_size="comfortable"):
+    def _close_compatibility_session(self, setting, purpose):
+        """Close idle Steam/services only; never stop a game or another program."""
+        from large_address import LargeAddressError, active_wine_processes
+
+        def guarded_rows():
+            rows = active_wine_processes(self)
+            # Do not shut down games, configuration tools, installers, or other
+            # programs someone may have put in this dedicated environment.
+            allowed = ("steam.exe", "steamwebhelper.exe", "steamservice.exe",
+                       "steamerrorreporter.exe", "steamerrorreporter64.exe",
+                       "services.exe", "winedevice.exe", "explorer.exe",
+                       "plugplay.exe", "svchost.exe", "rpcss.exe",
+                       "conhost.exe", "winemenubuilder.exe")
+            wine_root = str(self.contents / "SharedSupport/wine") + "/"
+            batch_name = r"(?:play|steam|memory-mode-steam-shutdown|audio-mode-steam-shutdown)-[0-9]+\.bat"
+            batch_root = re.escape(str(self.prefix / "drive_c/dao-support"))
+            windows_batch = re.compile(
+                r'^"?C:\\windows\\system32\\cmd\.exe"?\s+/s/c\s+"?C:\\dao-support\\'
+                + batch_name + r'"?\s*$', re.IGNORECASE)
+            for _, _, command in rows:
+                native_service = command.startswith(wine_root) and (
+                    re.fullmatch(re.escape(wine_root)+r'(?:bin|lib/wine/../../bin)/wineserver(?:\s+-[A-Za-z0-9]+)*',command)
+                    or re.fullmatch(re.escape(wine_root)+r'lib/wine/x86_64-unix/wine start /unix '
+                                    + batch_root+'/'+batch_name,command))
+                if (not native_service and not windows_batch.fullmatch(command)
+                        and not any(windows_process_is(command, name) for name in allowed)):
+                    raise DAOError(f"Close the game, its official launcher and any other Windows programs before changing {setting}.")
+            return rows
+
+        try:
+            rows = guarded_rows()
+            if any(windows_process_is(cmd,"steam.exe") for _,_,cmd in rows):
+                steam = find_steam(self.prefix)
+                startup = self.steam_startup(steam,[cmd for _,_,cmd in rows])
+                if startup != "client_running":
+                    raise DAOError(f"Let Steam finish starting or updating before changing {setting}.")
+                self.steam_command(["-shutdown"], purpose)
+                deadline = time.monotonic()+30
+                while any(windows_process_is(cmd,"steam.exe") for _,_,cmd in guarded_rows()):
+                    if time.monotonic() >= deadline:
+                        raise DAOError(f"Steam is still open. Close it normally, then press Play again to change {setting}.")
+                    time.sleep(0.5)
+            if guarded_rows():
+                self.stop()  # Steam has exited; only allowlisted services remain.
+                deadline = time.monotonic()+15
+                while guarded_rows():
+                    if time.monotonic() >= deadline:
+                        raise DAOError("The previous Wine session is still closing. Wait, then press Play again.")
+                    time.sleep(0.5)
+        except LargeAddressError as exc:
+            raise DAOError(str(exc)) from exc
+
+    def prepare_large_address(self, enabled: bool):
+        """Apply the selected memory mode only between clean Wine sessions."""
+        from large_address import LargeAddressError, status as memory_status, set_enabled
+        observed = memory_status(self)
+        if not observed["laa_supported"]:
+            if enabled or observed.get("laa_managed"):
+                raise DAOError(observed["laa_message"])
+            return
+        if observed["laa_enabled"] == enabled:
+            return
+        try:
+            self._close_compatibility_session("4 GB memory support", "memory-mode-steam-shutdown")
+            set_enabled(self, enabled)
+        except LargeAddressError as exc:
+            raise DAOError(str(exc)) from exc
+
+    def prepare_audio_fix(self, game):
+        """Automatically maintain the supported, DA:O-only audio component.
+
+        Unknown unmodified installations retain their existing audio handling.
+        If an owned installation becomes unsupported after an update, remove
+        only our verified files/value before launching; never overwrite a mod.
+        """
+        from audio_fix import AudioFixError, status as audio_status, set_enabled
+        observed = audio_status(self, game)
+        enabled = observed["audio_fix_supported"]
+        if not enabled and not observed["audio_fix_managed"]:
+            return
+        if observed["audio_fix_enabled"] == enabled and not observed.get("audio_fix_pending", False):
+            return
+        try:
+            self._close_compatibility_session("audio compatibility", "audio-mode-steam-shutdown")
+            set_enabled(self, game, enabled)
+        except (AudioFixError, OSError) as exc:
+            raise DAOError(str(exc)) from exc
+
+    def play(self, appid=None, preset=None, ui_size="comfortable", large_address_aware=None):
         from steam_maintenance import SteamMaintenance
         SteamMaintenance(self).cancel("Game launch requested; startup follow-up stopped.", force=True)
         self.require_platform()
@@ -694,6 +813,9 @@ class Controller:
         from game_setup import configuration_status
         if not configuration_status(self, game)["ready"]:
             raise DAOError("Choose Finish game setup before playing. Complete the supplied prerequisite installers and close the game configuration window.")
+        if large_address_aware is not None:
+            self.prepare_large_address(large_address_aware)
+        self.prepare_audio_fix(game)
         if preset:
             from display_settings import DisplaySettings
             DisplaySettings(self, appid=game["appid"]).prepare_for_play(preset, ui_size)
@@ -754,6 +876,7 @@ def main(argv=None):
     parser.add_argument("--appid", choices=sorted(GAMES))
     parser.add_argument("--preset")
     parser.add_argument("--ui-size", choices=["comfortable", "larger"], default="comfortable")
+    parser.add_argument("--large-address-aware", choices=["on", "off"], default=None)
     args = parser.parse_args(argv)
     try:
         c = Controller(project_root())
@@ -771,7 +894,9 @@ def main(argv=None):
                     maintenance = SteamMaintenance(c)
                     result = maintenance.maintain() if args.command == "steam-maintain" else maintenance.cancel_request()
                 elif args.command == "install-game": result = c.install_game(args.appid or "47810")
-                elif args.command == "play": result = c.play(args.appid, preset=args.preset, ui_size=args.ui_size)
+                elif args.command == "play":
+                    result = c.play(args.appid, preset=args.preset, ui_size=args.ui_size,
+                                    large_address_aware=None if args.large_address_aware is None else args.large_address_aware == "on")
                 elif args.command == "stop": result = c.stop()
                 elif args.command in ("configure-game", "install-ui-scaling"):
                     c.require_platform()

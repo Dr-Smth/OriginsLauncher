@@ -63,6 +63,7 @@ game.
 | Component | Our release boundary | Finding |
 | --- | --- | --- |
 | Current project-owned launcher, documentation and generated fallback icon | Source and compiled native app | GPL-3.0-only within the scope in `LICENSING.md`; covered binary distributions require corresponding source under the GPL. Prior MIT copies retain their supplied terms. |
+| Modified Wine DirectSound audio component (`audio-compat/`) | Game-local DLL plus complete matching source archive in the app and alongside the release | LGPL-2.1-or-later, separately from launcher GPL and artwork terms. Includes pristine pinned Wine 11.0 source, the full overlay, build recipe, notices and tests. No game or FMOD binary is distributed. Exact source/binary hashes and dated modification notices are retained. |
 | Aberrant Ink logo | Embedded in official app icons; original PNG and preview omitted from this public repository and audited release source ZIPs | Artist-owned and outside GPL. Beta.6 terms allow app use, including business use, and sharing unchanged official copies free of charge. Selling copies containing the artwork or separate reuse needs permission. Modified/independent builds need permitted replacement artwork or separate permission. Preserve the asset notice. Beta.5 retains its original resale permission. |
 | CPython 3.14.9, Astral build 20261021, Apple Silicon | Included in app; downloaded only at build time | Python permits redistribution with its required notices. Dependencies have their own terms. Preserve the exact build's metadata, licence texts and bundled package notices. |
 | Sikarugir template 1.0.24 / Wine 11.0_1 | Recipient downloads directly from official upstream on explicit setup | Configure/Wine have FOSS licences; Sikarugir Launcher/Creator are not covered by the stated LGPL licence. Complete-wrapper redistribution is not cleared. |
@@ -211,3 +212,22 @@ Before public binary release, and on each later release:
 The full operational checklist is in [Releasing](RELEASING.md). No public upload,
 rights-holder contact, paid membership purchase or legal clearance was performed
 as part of this review.
+
+## Beta.7 audio component source boundary
+
+The built-in audio component is a modified Wine library, not a redistribution of
+the game's FMOD library or executable. The source and binary correspondence was
+checked for the final production component, including the full upstream archive,
+all modified sources, the build recipe and LGPL notices. New compatibility code
+and build material in `audio-compat/` use LGPL-2.1-or-later. The remaining
+project-owned launcher code keeps GPL-3.0-only.
+
+The complete matching source archive is included in each app under
+`Contents/Resources/audio-compat/` and is exported beside its installer. The
+launcher source ZIP contains the overlay and recipe; it does not replace that
+complete library-source archive. Keep both forms of corresponding source and
+their notices with distributed artifacts. See [component notices](../audio-compat/README.md)
+and [release checks](RELEASING.md#audio-component-checks-for-beta7-and-later).
+
+This records the reviewed source/distribution arrangement, not a blanket legal
+clearance or evidence of compatibility on every Mac.

@@ -1,4 +1,47 @@
-# Release validation: 0.2.0-beta.6
+# Release validation
+
+## Beta.7 — 29 October 2026
+
+Beta.7 adds the
+built-in audio component, optional DA:O-only 4 GB memory support and launcher UI
+cleanup. The public beta.6 installer and its matching source remain unchanged.
+
+Beta.7 adds automatic DA:O-only audio compatibility and optional **4 GB memory
+support**. The Steam game executable remains unchanged. The audio component is
+installed only for exact supported game, FMOD and runtime versions; unsupported
+installations and unrelated audio mods are preserved. See [Audio compatibility](AUDIO.md).
+
+The production audio component and 4 GB mode were tested together on the M5 Pro
+MacBook. The user confirmed gameplay, then restarted the game and successfully
+reloaded the save with controls and sound working. A brief audio issue occurred
+and cleared itself; its precise timing and cause are unknown.
+
+The main session's final component status showed about 11 minutes of process
+uptime, four pauses followed by four resumptions, and no permanent cutoff.
+Assistance remained active. These counters describe component behavior; they
+neither measure audible quality nor establish when or why the brief issue
+occurred. No audio was recorded.
+
+The automated launcher suite passed **322 tests**, including **49 audio manager,
+controller and packaging tests**. The component's separate sanitizer-backed host
+tests passed 52 adapter cases and five policy scenario groups. These checks
+cover policy boundaries, recovery, file ownership, interrupted changes and
+source/binary pairing; they do not establish audible quality on other hardware.
+
+This evidence is from one Mac. **M1 MacBook Air reports have not yet been
+retested with the fix**, and the beta does not claim that every audio problem is
+resolved. Exact package checks and artifact hashes are recorded in the
+`VALIDATION.json` attached to the beta.7 release. Historical beta.6 opening
+checks below do not validate a different installer.
+
+The production audio DLL is `c8a4e9ed9c78c365d0e6d3ca7f5e0d9bb0146257d0d414af8d64d705d5cac136`
+(SHA-256). Its complete matching source archive is
+`e6a0b76eedd65a8b6f6e3888c98532b95eac6554078bf86ff095efa790853050`.
+Three fresh source builds produced the same final DLL with the recorded
+toolchain. The app packages the library's LGPL notices and complete source;
+see [Building](BUILDING.md) and [third-party notices](../THIRD_PARTY.md).
+
+## Historical beta.6 release
 
 Source preparation date: 26 October 2026. **0.2.0-beta.6** updates the separately
 licensed Aberrant Ink artwork terms. The app version is `0.2.0`, build `6`. It

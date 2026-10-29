@@ -726,7 +726,7 @@ class ControllerTests(unittest.TestCase):
                 mock.patch.object(self.c, "play", side_effect=lambda *args, **kwargs: events.append("play") or {"ok": True}) as play, \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(daoctl.main(["play", "--appid", "47810", "--preset", "fullscreen-retina", "--ui-size", "larger"]), 0)
-        play.assert_called_once_with("47810", preset="fullscreen-retina", ui_size="larger")
+        play.assert_called_once_with("47810", preset="fullscreen-retina", ui_size="larger", large_address_aware=None)
         self.assertEqual(events, ["lock", "play", "unlock"])
 
     def test_ui_scaling_cli_honors_explicit_edition_after_scoped_guard_under_lock(self):

@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "component": "origins-audio",
+  "version": "1.0.0-beta.1",
+  "license": "LGPL-2.1-or-later",
+  "upstream": {
+    "name": "Wine",
+    "version": "11.0",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-11.0",
+    "sha256": "f09e8153aa46a581d2b56a5b1363b04832070b9409d9244a68cf482b243ff14a",
+    "root": "wine-wine-11.0"
+  },
+  "overlay": {
+    "dlls/dsound/buffer.c": {
+      "sha256": "8e4ee30f57b1a556eceb3c7d19b40f49cd31df3347f5e17b12a20db893c11e3f",
+      "bytes": 46656
+    },
+    "dlls/dsound/clean_api.c": {
+      "sha256": "29d12f1d7fd9396d896a17b4156423e224f7732333ca5a8a2ae35a3c81e7870c",
+      "bytes": 7366
+    },
+    "dlls/dsound/clean_audio.c": {
+      "sha256": "20e8a81ec43827f34735516018eb5016036170fca944c1f0c55bf42504c368f2",
+      "bytes": 16575
+    },
+    "dlls/dsound/clean_config.h": {
+      "sha256": "d6f23a0a96d5d4cf097b0ccd96dcf77b9560ceca84914b03752310d30a983861",
+      "bytes": 669
+    },
+    "dlls/dsound/clean_provenance.c": {
+      "sha256": "f2a09306bec8c69c7075d7880df9ae7b970dec9068edebe275dd5ef97d18bc1e",
+      "bytes": 8450
+    },
+    "dlls/dsound/clean_scope.h": {
+      "sha256": "5730b8d7d280bb13ab9667117c08e0df6274590b32478f2d49b9e8549b4d300d",
+      "bytes": 1245
+    },
+    "dlls/dsound/decision_core.h": {
+      "sha256": "ba0e5241d4e3e99c4d6acf522b294c95e843172be55ca02e21b0541682ba74d5",
+      "bytes": 9653
+    },
+    "dlls/dsound/decision_format.h": {
+      "sha256": "6ff8cb01c274370ab55c2a86da27b106fc0989a60885f6eb075a1630d2b71c39",
+      "bytes": 2122
+    },
+    "dlls/dsound/dsound.c": {
+      "sha256": "a3b6dea385f2a62a879c953148df7d1e925b577e75511558c3f02c72a17ef7d3",
+      "bytes": 40409
+    },
+    "dlls/dsound/dsound_private.h": {
+      "sha256": "1b4cc726c99ad2beaf2e0383f4797f65795956022edad9a01f26da4d39ffd277",
+      "bytes": 10829
+    },
+    "dlls/dsound/latest_snapshot.h": {
+      "sha256": "360c7ab9509bba9ae12f92af64a516d0179372e39a58cc9333ec3f5148cd487d",
+      "bytes": 1550
+    },
+    "dlls/dsound/mixer.c": {
+      "sha256": "425126caf1d8ec53dafd445c68c658ae9f1b3c59d773e8745a4b573a7007a4fa",
+      "bytes": 25100
+    },
+    "dlls/dsound/primary.c": {
+      "sha256": "8847b62889511a3fc1b0554e11ca1f6ae4efc84227df7e53e11d313330c97e9c",
+      "bytes": 35910
+    },
+    "dlls/dsound/provenance_api.h": {
+      "sha256": "5f7d6a323ed4c7e2cadc3c41dc1d200507bae9e49d05f67562e0d17a539ca2b5",
+      "bytes": 1425
+    },
+    "dlls/dsound/provenance_format.h": {
+      "sha256": "401baf595081047e519e12e0d7d1d5552bb30f7f075e92ac9b54dcba157f1c91",
+      "bytes": 1857
+    },
+    "dlls/dsound/provenance_slots.h": {
+      "sha256": "14f66ce419cec833650a726aa9ee93dff48af324c34bdd3eb82fc8ecfa03cab0",
+      "bytes": 2236
+    },
+    "dlls/dsound/route_format.h": {
+      "sha256": "233678f8e318cfec4a3caed75d0f3d210a0c50846406ecb82d950fd0f5505714",
+      "bytes": 615
+    },
+    "dlls/dsound/route_trace.h": {
+      "sha256": "5483fa2e387794def43947eceb141d4897241cb718dfc3b71ee7f7625c50fb2d",
+      "bytes": 1237
+    },
+    "tools/winebuild/import.c": {
+      "sha256": "9521c4bb700dd53163f74d17b0312c8bcbc77da0f1e4794aaa8c644b66ac47c1",
+      "bytes": 57145
+    }
+  }
+}

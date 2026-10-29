@@ -13,7 +13,7 @@ def smoke(app):
     python=resources/'python/bin/python3'
     assert python.is_file(), 'Private Python is missing'
     assert not (resources/'runtime-location.json').exists(), 'Private runtime pointer must never be shipped'
-    for name in ('LICENSE','LICENSING.md','ARTWORK.md','THIRD_PARTY.md','dependency-manifest.json','game_setup.py','ui_scaling.py','profile_paths.py','steam_maintenance.py'):
+    for name in ('LICENSE','LICENSING.md','ARTWORK.md','THIRD_PARTY.md','dependency-manifest.json','game_setup.py','ui_scaling.py','profile_paths.py','steam_maintenance.py','audio_fix.py','audio-compat/component.json','audio-compat/dsound.dll','audio-compat/COPYING.LIB'):
         assert (resources/name).is_file(), name
     assert len(list((resources/'python/THIRD_PARTY_LICENSES').glob('LICENSE*'))) >= 5
     with tempfile.TemporaryDirectory(prefix='origins-clean-smoke-') as temporary:

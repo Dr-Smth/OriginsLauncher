@@ -5,7 +5,12 @@ unsigned beta, and a Developer ID-signed, notarized release. A source release ca
 be made separately. Publishing source or building a package does not establish
 that the app has passed the fresh-install checks below.
 
-The current beta is **0.2.0-beta.6**, app version `0.2.0`, build `6`.
+The release being prepared is **0.2.0-beta.7**, app version `0.2.0`. Record the
+exact build number from the final app's Info.plist with its validation evidence.
+It adds automatic audio compatibility and optional 4 GB memory support; see
+[the beta.7 validation record](RELEASE_STATUS.md#beta7--29-october-2026).
+
+The already published **0.2.0-beta.6** uses app version `0.2.0`, build `6`.
 It updates Aberrant Ink’s separately licensed artwork terms: unchanged official
 builds may be shared free of charge; sale of copies containing the artwork needs
 separate permission. GPL code may still be sold with the fallback or other
@@ -265,3 +270,27 @@ with the exact audited artifacts, then download the public-hosted disk image
 without signing in and check its hash. Do not make the private maintenance
 repository public as a shortcut. Record host-specific checks separately from
 the immutable package-validation record.
+
+## Audio component checks for beta.7 and later
+
+The automatic DA:O audio compatibility library is separately licensed under
+LGPL-2.1-or-later. Build it from the pinned complete source and overlay described
+in `audio-compat/README.md`. Keep the matching full source archive, not only the
+launcher source ZIP or a link to upstream Wine.
+
+Before packaging, verify the production component and source hashes, run the
+policy/adapter tests and launcher tests, and check a clean install/remove cycle
+with the game and its Wine session closed. Record actual gameplay with the final
+production component, including the optional 4 GB mode, separately from automated
+checks. Do not describe the M1 Air reports as fixed until someone tests that Mac.
+
+Every app includes the DLL, licence, notices, manifest and complete matching
+source archive in `Contents/Resources/audio-compat/`. The packager rejects stale
+or missing materials and places the same source archive beside the installer.
+Upload that archive alongside the installer, launcher source ZIP and checksums.
+A source-only export of the launcher includes the overlay and recipe; it does not
+by itself replace the complete source archive accompanying the modified Wine DLL.
+
+Keep beta.6 downloads unchanged. Update public download links only when the new
+release's exact artifacts, source, notices and checksums are available; record
+its public-host download verification separately from local package validation.

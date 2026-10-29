@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "origins-audio",
+  "version": "1.0.0-beta.1",
+  "dll": {
+    "file": "dsound.dll",
+    "sha256": "c8a4e9ed9c78c365d0e6d3ca7f5e0d9bb0146257d0d414af8d64d705d5cac136",
+    "bytes": 274432
+  },
+  "game": {
+    "file": "DAOrigins.exe",
+    "sha256": "400c2c9e97bb1a534121553be66f202429ef6f7320c93c86f9b7a491864647bd"
+  },
+  "fmod": {
+    "file": "fmodex.dll",
+    "sha256": "1eeebe3793e1f2ec3b03aa4f0bdd373a60a657015a4d125d8febb62f6ace01b9"
+  },
+  "runtime": {
+    "base": "runtime_contents",
+    "engine_version": "WS12WineSikarugir11.0_1",
+    "engine_archive_sha256": "67e29fb3d74f363af39c69ba11f9b13a79812c5db07cf4748672658e4a200a0e",
+    "files": [
+      {
+        "path": "SharedSupport/wine/lib/wine/i386-windows/dsound.dll",
+        "sha256": "58afaf9118c43871ee2a1291c0ab04590067e184641552c07e05fd14006f2d43"
+      },
+      {
+        "path": "SharedSupport/wine/lib/wine/x86_64-unix/winecoreaudio.so",
+        "sha256": "06534d8fcdee44969e5f5a16553cc57b2fbab13c617ba7fe850a9f72f3cd458c"
+      },
+      {
+        "path": "SharedSupport/wine/lib/wine/x86_64-unix/ntdll.so",
+        "sha256": "f51a982887a7408af33abe573b296ad5eaf0a1337c2aeeae84e5ea6605496bf3",
+        "managed_laa_override": true
+      }
+    ]
+  },
+  "status_directory": "drive_c/dao-support/origins-audio/status",
+  "policy_revision": 10,
+  "license": "LGPL-2.1-or-later",
+  "corresponding_source": {
+    "file": "origins-audio-1.0.0-beta.1-source.tar.gz",
+    "sha256": "e6a0b76eedd65a8b6f6e3888c98532b95eac6554078bf86ff095efa790853050",
+    "bytes": 53573395
+  },
+  "source_manifest_sha256": "793b9590a1d2304f26f64164f78374b51ec22db68b51675aad0a552c0ece1452",
+  "build_recipe_sha256": "af9d2531a67b23a0f30a249148b159db8987c99ce1502edd9ba36f9783577a0c"
+}

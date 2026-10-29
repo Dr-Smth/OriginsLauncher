@@ -44,3 +44,25 @@ without inspection and redaction.
 
 Do not share the whole data root, prepared prefix, registry, Steam `config` or
 `userdata` folders. Those are not release artifacts and may contain account data.
+
+## Audio compatibility files
+
+The built-in audio fix keeps its installation receipt, verified recovery DLL and
+original registry backup under `data/audio-fix`. The registry backup can contain
+private paths and configuration; do not attach it to a public issue. Removal of
+the fix preserves unrelated registry changes rather than restoring that whole
+backup.
+
+During supported gameplay, the component may write small local status files at:
+
+```text
+runtime/DAO Runtime.app/Contents/SharedSupport/prefix/drive_c/dao-support/origins-audio/status
+```
+
+These contain component/policy versions, a Windows process ID, timing values,
+state and aggregate counters for audio assistance and recovery. They are not
+audio recordings, screen recordings or CPU profiles. Missing status output does
+not prevent playback. The component does not upload these files or record the
+content of dialogue, music or sound effects. Old process status files may remain
+until the local environment is cleaned up; they do not by themselves prove that
+the current game is running or that an audible fault occurred.
