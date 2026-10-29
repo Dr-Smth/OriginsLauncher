@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import zipfile
 from audit_release import ARTWORK_NOTICE, NOTICE_FILES, RESERVED_IMAGES, audit
+from bundle_audio import validate as validate_audio
 
 
 OFFICIAL_ARTWORK_CREDIT = 'Aberrant Ink'
@@ -121,6 +122,10 @@ def package(root, output, app=None, public=False, unsigned_beta=False):
         if app.suffix != '.app' or not (app / 'Contents/Info.plist').is_file():
             raise ValueError('Expected an app bundle')
         validate_artwork_bundle(app, root)
+        # New source trees that ship the audio component must retain both its
+        # exact DLL and complete matching source in every distributed app.
+        if (root / "audio-compat/component.json").exists():
+            validate_audio(root / "audio-compat", app / "Contents/Resources/audio-compat", bundled=True)
         # Refuse a stale bundle before writing any release artifacts: its licence
         # and scope notices must match the source accompanying this release.
         for name in NOTICE_FILES:
@@ -169,6 +174,14 @@ def package(root, output, app=None, public=False, unsigned_beta=False):
                 shutil.copyfile(root / name, stage / name)
             subprocess.run(['/usr/bin/hdiutil', 'create', '-volname', 'Origins Launcher', '-srcfolder', str(stage), '-format', 'UDZO', str(dmg)], check=True)
         products.append(dmg)
+        if (root / "audio-compat/component.json").exists():
+            audio_manifest = json.loads((root / "audio-compat/component.json").read_text())
+            name = audio_manifest["corresponding_source"]["file"]
+            source_archive = output / name
+            if source_archive.exists():
+                raise ValueError("Audio source archive already exists")
+            shutil.copyfile(app / "Contents/Resources/audio-compat" / name, source_archive)
+            products.append(source_archive)
     (output / 'SOURCE-MANIFEST.json').write_text(json.dumps(entries, indent=2) + '\n')
     products.append(output / 'SOURCE-MANIFEST.json')
     (output / 'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n' for p in products))

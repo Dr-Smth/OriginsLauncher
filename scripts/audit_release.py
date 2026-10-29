@@ -10,8 +10,14 @@ NOTICE_FILES = ('LICENSE', 'LICENSING.md', 'ARTWORK.md', 'THIRD_PARTY.md')
 ROOT_FILES = {'LICENSE','LICENSING.md','ARTWORK.md','README.md','THIRD_PARTY.md','CONTRIBUTING.md','SECURITY.md',
               '.gitignore','VERSION','dependency-manifest.json','CHANGELOG.md'}
 SOURCE_FILES = {'Launcher.swift','Icon.swift','DisplayProbe.swift','build.sh','daoctl.py',
-                'steam_state.py','display_settings.py','bootstrap_runtime.py','game_setup.py','ui_scaling.py','profile_paths.py','steam_maintenance.py'}
-SCRIPT_FILES = {'audit_release.py','bundle_python.py','package_release.py','sign_release.py','smoke_app.py'}
+                'steam_state.py','display_settings.py','bootstrap_runtime.py','game_setup.py','ui_scaling.py','profile_paths.py','steam_maintenance.py',
+                'large_address.py','laa_stub.py','audio_fix.py'}
+SCRIPT_FILES = {'audit_release.py','bundle_python.py','package_release.py','sign_release.py','smoke_app.py','build_laa_stub.py','bundle_audio.py'}
+AUDIO_FILES = {'component.json','source-manifest.json','build-provenance.json','build.py','make_source_bundle.py','COPYING.LIB','README.md'}
+AUDIO_DSOUND_FILES = {'buffer.c','clean_api.c','clean_audio.c','clean_config.h','clean_provenance.c',
+    'clean_scope.h','decision_core.h','decision_format.h','dsound.c','dsound_private.h',
+    'latest_snapshot.h','mixer.c','primary.c','provenance_api.h','provenance_format.h',
+    'provenance_slots.h','route_format.h','route_trace.h'}
 ISSUE_FILES = {'bug_report.yml', 'compatibility_report.yml', 'config.yml'}
 # Known, separately reserved art in the private maintenance repository. Validate
 # identity but omit these images from GPL source exports; retain their notice.
@@ -29,8 +35,13 @@ PATTERNS = [re.compile(rb'/Users/[A-Za-z0-9_. -]+/'),
 def allowed(rel):
     parts=rel.parts
     return (rel.as_posix()==ARTWORK_NOTICE or
+            len(parts)==2 and parts[0]=='audio-compat' and rel.name in AUDIO_FILES or
+            len(parts)==3 and parts[:2]==('audio-compat','tests') and rel.name.startswith('test_') and rel.suffix in {'.py','.c','.h'} or
+            len(parts)==5 and parts[:4]==('audio-compat','overlay','dlls','dsound') and rel.name in AUDIO_DSOUND_FILES or
+            rel.as_posix() in {'audio-compat/overlay/tools/winebuild/import.c','audio-compat/tests/policy_recovery_test.c'} or
             len(parts)==1 and rel.name in ROOT_FILES or
             len(parts)==2 and parts[0]=='source' and rel.name in SOURCE_FILES or
+            rel.as_posix()=='source/native/laa_gate.S' or
             len(parts)==3 and parts[:2]==('source','tests') and rel.name.startswith('test_') and rel.suffix=='.py' or
             len(parts)==2 and parts[0]=='scripts' and rel.name in SCRIPT_FILES or
             len(parts)==2 and parts[0]=='docs' and rel.suffix=='.md' or
