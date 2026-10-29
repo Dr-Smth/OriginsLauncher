@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "component": "origins-audio",
+  "version": "1.0.0-beta.1",
+  "dll": {
+    "sha256": "c8a4e9ed9c78c365d0e6d3ca7f5e0d9bb0146257d0d414af8d64d705d5cac136",
+    "bytes": 274432
+  },
+  "source_manifest_sha256": "793b9590a1d2304f26f64164f78374b51ec22db68b51675aad0a552c0ece1452",
+  "build_recipe_sha256": "af9d2531a67b23a0f30a249148b159db8987c99ce1502edd9ba36f9783577a0c",
+  "wine_archive_sha256": "f09e8153aa46a581d2b56a5b1363b04832070b9409d9244a68cf482b243ff14a",
+  "configure_arguments": [
+    "../wine-wine-11.0/configure",
+    "--enable-archs=i386",
+    "--without-x",
+    "--without-freetype",
+    "--without-vulkan",
+    "--without-gnutls",
+    "CC=clang -arch x86_64",
+    "CXX=clang++ -arch x86_64",
+    "--host=x86_64-apple-darwin",
+    "BISON=../toolchain/bison",
+    "ac_cv_mabi_ms=yes"
+  ],
+  "make_arguments": [
+    "make",
+    "-j8",
+    "i386_CFLAGS=-O2 -g0",
+    "i386_LDFLAGS= --no-default-config -fms-hotpatch -Wl,/debug:none,/timestamp:0",
+    "dlls/dsound/i386-windows/dsound.dll"
+  ],
+  "debug_data": false,
+  "pe_timestamp": 0,
+  "live_actions": false,
+  "tools": {
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "lld": "LLD 19.1.7 (https://github.com/rust-lang/llvm-project.git 7e8c93c87c611f21d9bd95100563392f4c18bfe7)",
+    "bison": "bison (GNU Bison) 3.8.2",
+    "flex": "flex 2.6.4"
+  }
+}
