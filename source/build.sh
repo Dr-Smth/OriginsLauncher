@@ -11,6 +11,7 @@ custom_logo="${DAO_CUSTOM_LOGO_PATH:-}"
 official_artwork="${DAO_OFFICIAL_ARTWORK:-0}"
 custom_credit="${DAO_CUSTOM_LOGO_CREDIT:-Copyright owner of the supplied artwork}"
 build_python="${DAO_BUILD_PYTHON:-python3}"
+audio_artifacts="${DAO_AUDIO_ARTIFACT_DIR:-$repo_dir/../origins-audio-build}"
 if [[ "$official_artwork" != 0 && "$official_artwork" != 1 ]]; then
     echo 'DAO_OFFICIAL_ARTWORK must be 0 or 1.' >&2
     exit 2
@@ -50,10 +51,12 @@ if [[ "$(/usr/bin/uname -m)" != arm64 ]]; then
     echo 'This release targets Apple Silicon. Build it on an Apple Silicon Mac.' >&2
     exit 2
 fi
+"$build_python" -B "$repo_dir/scripts/bundle_audio.py" --source "$repo_dir/audio-compat" --artifacts "$audio_artifacts"
 build_cache="${DAO_BUILD_CACHE_DIR:-${TMPDIR:-/tmp}/origins-launcher-build-cache}"
 mkdir -p "$build_cache" "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources"
 sdk_path="$(/usr/bin/xcrun --sdk macosx --show-sdk-path)"
 swift_compiler="$(/usr/bin/xcrun --find swiftc)"
+"$build_python" -B "$repo_dir/scripts/build_laa_stub.py" --check
 "$swift_compiler" "$source_dir/Launcher.swift" -parse-as-library -swift-version 5 -O \
     -target arm64-apple-macosx13.0 -sdk "$sdk_path" -module-cache-path "$build_cache/modules" \
     -framework SwiftUI -framework AppKit -o "$app_dir/Contents/MacOS/OriginsLauncher"
@@ -79,7 +82,7 @@ cat > "$app_dir/Contents/Info.plist" <<'PLIST'
 <key>CFBundleIconFile</key><string>DragonAgeOrigins.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>0.2.0</string>
-<key>CFBundleVersion</key><string>6</string>
+<key>CFBundleVersion</key><string>7.3</string>
 <key>LSMinimumSystemVersion</key><string>26.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>
@@ -87,9 +90,10 @@ cat > "$app_dir/Contents/Info.plist" <<'PLIST'
 <key>NSHumanReadableCopyright</key><string>Copyright 2026 David Richard Smith and Origins Launcher contributors. Unofficial; not affiliated with EA, BioWare or Valve.</string>
 </dict></plist>
 PLIST
-for file in daoctl.py steam_state.py display_settings.py bootstrap_runtime.py game_setup.py ui_scaling.py profile_paths.py steam_maintenance.py; do
+for file in daoctl.py steam_state.py display_settings.py bootstrap_runtime.py game_setup.py ui_scaling.py profile_paths.py steam_maintenance.py large_address.py laa_stub.py audio_fix.py; do
     /usr/bin/install -m 644 "$source_dir/$file" "$app_dir/Contents/Resources/$file"
 done
+"$build_python" -B "$repo_dir/scripts/bundle_audio.py" --source "$repo_dir/audio-compat" --artifacts "$audio_artifacts" --destination "$app_dir/Contents/Resources/audio-compat"
 # Backend-owned helper modules are included explicitly, never by copying a live runtime.
 if [[ -f "$source_dir/first_run.py" ]]; then
     /usr/bin/install -m 644 "$source_dir/first_run.py" "$app_dir/Contents/Resources/first_run.py"
