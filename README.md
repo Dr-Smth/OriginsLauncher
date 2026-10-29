@@ -78,14 +78,9 @@ Save and quit the game before changing display settings. See
 ## Audio and memory support
 
 Beta.7 includes automatic DA:O-only audio compatibility for supported game and
-runtime versions, aimed at reducing crackling and repeated dialogue. No audio
-switch or separate download is needed. Optional **4 GB memory support** in the
-launcher lets DA:O use a larger address space without changing the Steam game
-executable; it does not add physical RAM.
+runtime versions, aimed at reducing crackling and repeated dialogue.
+Optional **4 GB memory support** in the launcher lets DA:O use a larger address space without changing the Steam game executable.
 
-Both features and save/reload after restarting were tested together on an M5 Pro
-MacBook. A brief audio issue cleared itself; this is not a claim of completely
-fault-free audio. The M1 Air reports have not yet been retested with this fix.
 See [Audio compatibility](docs/AUDIO.md) for scope and current limitations.
 
 ## Your saves/files
