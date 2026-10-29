@@ -1,6 +1,37 @@
 # Compatibility and evidence
 
-The current beta is **0.2.0-beta.6**, which updates the separate Aberrant Ink artwork terms alongside the GPL notice,
+## Beta.7 audio and memory validation
+
+Beta.7 adds automatic DA:O-only audio compatibility and optional **4 GB memory
+support**. The Steam game executable remains unchanged. The audio component is
+installed only for exact supported game, FMOD and runtime versions; unsupported
+installations and unrelated audio mods are preserved. See [Audio compatibility](AUDIO.md).
+
+The production audio component and 4 GB mode were tested together on the M5 Pro
+MacBook. The user confirmed gameplay, then restarted the game and successfully
+reloaded the save with controls and sound working. A brief audio issue occurred
+and cleared itself; its precise timing and cause are unknown.
+
+The main session's final component status showed about 11 minutes of process
+uptime, four pauses followed by four resumptions, and no permanent cutoff.
+Assistance remained active. These counters describe component behavior; they
+neither measure audible quality nor establish when or why the brief issue
+occurred. No audio was recorded.
+
+The automated launcher suite passed **322 tests**, including **49 audio manager,
+controller and packaging tests**. The component's separate sanitizer-backed host
+tests passed 52 adapter cases and five policy scenario groups. These checks
+cover policy boundaries, recovery, file ownership, interrupted changes and
+source/binary pairing; they do not establish audible quality on other hardware.
+
+This evidence is from one Mac. **M1 MacBook Air reports have not yet been
+retested with the fix**, and the beta does not claim that every audio problem is
+resolved. Final beta.7 package/opening checks must be recorded against its exact
+artifacts; historical beta.6 checks below do not validate a different installer.
+
+## Historical beta.6 compatibility evidence
+
+Beta.6 is the previously published release, which updates the separate Aberrant Ink artwork terms alongside the GPL notice,
 Help/About and release-documentation changes. The game/runtime/display behaviour
 is unchanged by those changes. Gameplay and downloaded-app approval observations
 below are historical beta.3 evidence unless explicitly stated otherwise. Consult

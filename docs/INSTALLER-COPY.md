@@ -397,8 +397,8 @@ The following tables retain the authored literal wording, including technical er
 | Status / response | Dragon Age: Origins is already running. No second instance was started. | [`source/daoctl.py:691`](../source/daoctl.py#L691) |
 | Error / diagnostic | Dragon Age's configuration utility is still running. Finish or close it before choosing Play. | [`source/daoctl.py:693`](../source/daoctl.py#L693) |
 | Error / diagnostic | Choose Finish game setup before playing. Complete the supplied prerequisite installers and close the game configuration window. | [`source/daoctl.py:696`](../source/daoctl.py#L696) |
-| Status / response | Game launch requested. You confirmed gameplay, audio and save/reload on this Mac. | [`source/daoctl.py:702`](../source/daoctl.py#L702) |
-| Status / response | Game launch requested. Steam may run prerequisite installers. Gameplay compatibility has not yet been verified. | [`source/daoctl.py:703`](../source/daoctl.py#L703) |
+| Controller response (hidden after successful Play) | Game launch requested. You confirmed gameplay, audio and save/reload on this Mac. | [`source/daoctl.py:702`](../source/daoctl.py#L702) |
+| Controller response (hidden after successful Play) | Game launch requested. Steam may run prerequisite installers. Gameplay compatibility has not yet been verified. | [`source/daoctl.py:703`](../source/daoctl.py#L703) |
 | Status / response | Stopped by the user. | [`source/daoctl.py:708`](../source/daoctl.py#L708) |
 | Error / diagnostic | Runtime stop failed. Check {log.name}. | [`source/daoctl.py:715`](../source/daoctl.py#L715) |
 | Status / response | Requested shutdown of this game's Wine session. Game files and saves are preserved. | [`source/daoctl.py:716`](../source/daoctl.py#L716) |

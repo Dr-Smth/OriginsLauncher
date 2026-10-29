@@ -4,10 +4,26 @@ Build on Apple Silicon with macOS 26 or later, Xcode command-line tools and
 Python 3. The app uses SwiftUI/AppKit and Python's standard library. Homebrew is
 not required. End users of a packaged app do not need these development tools.
 
-From the repository root:
+## Audio component build
+
+Beta.7 includes a modified Wine DirectSound library and its complete matching
+LGPL source. Build that component first using the pinned source and instructions
+in [audio-compat/README.md](../audio-compat/README.md). That step needs Clang,
+LLVM's LLD linker and a compatible Bison; these are developer tools only.
+End users still install a single app and need none of them.
+
+Keep the resulting `dsound.dll` and complete `*-source.tar.gz` archive in an output
+folder outside this repository. Set `DAO_AUDIO_ARTIFACT_DIR` to that folder when
+building the app. The app build verifies the binary, source archive, source
+overlay and build recipe against `audio-compat/component.json` before copying
+them into the bundle. It refuses missing or mismatched materials. The default
+artifact folder is `../origins-audio-build` relative to the repository.
+
+From the repository root, after building the audio component:
 
 ```sh
-bash source/build.sh "$PWD/../Origins Launcher.app"
+DAO_AUDIO_ARTIFACT_DIR="$PWD/../origins-audio-build" \
+  bash source/build.sh "$PWD/../Origins Launcher.app"
 python3 -B -m unittest discover -s source/tests -v
 ```
 
@@ -15,7 +31,7 @@ Choose a new app output path **outside the source tree** for each build. The bui
 refuses an existing output instead of replacing an installed app or merging stale
 resources. The source-release audit deliberately rejects build-directory pollution.
 
-The build compiles the native launcher and display probe, generates the original
+The app build compiles the native launcher and display probe, generates the original
 icon, bundles the Python controller and a pinned Apple Silicon Python interpreter,
 and signs the app locally. Network access is needed on the first build to obtain
 Python 3.14.9 from the official Astral `python-build-standalone` release. Versions,
@@ -127,11 +143,13 @@ reserved for Developer ID-signed and notarized releases. See
 
 ## GitHub Actions
 
-The repository's **Source and app checks** GitHub Actions workflow is manual
-(`workflow_dispatch`). Maintainers can run it deliberately after checking the
-repository's Actions permissions and runner availability. Local validation
-commands above do not use GitHub Actions. Automatic push and pull-request checks
-can be enabled separately.
+The manual **Source and audio checks** workflow (`workflow_dispatch`) runs
+launcher tests, the clean-source audit, and host audio policy/adapter tests. It
+does not build the audio DLL, app or installer, and does not validate packaged-app
+launch or gameplay. Those checks remain local until the pinned audio binary and
+matching source archive can be reproducibly provisioned in Actions. Runner usage
+may consume the account's allowance depending on repository visibility and plan.
+Automatic triggers remain disabled; local commands do not use Actions.
 
 ## Architecture
 

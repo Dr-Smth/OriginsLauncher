@@ -45,6 +45,25 @@ Use a lower rendering resolution or the optional **Enable UI scaling** feature,
 then select a comfortable UI size. Save and quit first. Existing UI mods may
 conflict; the launcher should report a conflict rather than overwrite them.
 
+## Crackling or repeated/overlapping dialogue
+
+Press **Play** normally. The launcher automatically applies its built-in audio
+compatibility fix when the game, FMOD library and runtime match the verified
+versions. There is no audio toggle or separate mod download. Existing audio mods
+and unsupported versions are preserved; unsupported installations can still run
+without the fix. The optional 4 GB memory setting is independent of it.
+
+If asked, close Dragon Age and its official Windows launcher before retrying.
+Let Steam finish any update first. An interrupted installation can be resumed;
+changed or unrecognized files are preserved and may require maintainer help.
+Keep the exact message and use **Diagnostics**, reviewing the summary before
+sharing it. Do not delete the whole environment or overwrite existing mods.
+
+For persistent audio faults, report your Mac model, macOS version, speakers or
+headphones, the 4 GB setting, which sounds are affected and how long the game had
+been running. M1 Air results with the new fix remain unverified. See
+[Audio compatibility](AUDIO.md) for the current test limits and recovery behavior.
+
 ## macOS will not open a downloaded app
 
 Check that it came from the intended publisher and that its checksum matches the
