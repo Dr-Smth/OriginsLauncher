@@ -274,6 +274,54 @@ class ProcessGuardTests(unittest.TestCase):
         self.c = types.SimpleNamespace(runtime=Path("/fixture/DAO Runtime.app"),
             contents=Path("/fixture/DAO Runtime.app/Contents"))
 
+    def test_signed_system_uid_does_not_block_inventory_or_hide_owned_wine(self):
+        command = r"C:\Steam\steam.exe"
+        for system_uid in ("-2", "4294967294"):
+            with self.subTest(system_uid=system_uid):
+                result = types.SimpleNamespace(stdout=(
+                    "1 0 0 S /sbin/launchd\n"
+                    f"41 1 {system_uid} S /unrelated/system-service\n"
+                    f"42 1 501 S {command}\n"
+                    "43 42 501 S child-process\n"))
+                def path(pid, buffer, length):
+                    self.assertEqual(pid, 42)
+                    buffer.value = os.fsencode(self.c.runtime / "Contents/SharedSupport/wine/bin/wine")
+                    return len(buffer.value)
+                fn = mock.Mock(side_effect=path)
+                with mock.patch.object(laa.subprocess, "run", return_value=result), \
+                        mock.patch.object(laa.os, "getuid", return_value=501), \
+                        mock.patch.object(laa.ctypes, "CDLL", return_value=types.SimpleNamespace(proc_pidpath=fn)):
+                    self.assertEqual(laa.strict_processes(self.c),
+                                     [(42, 1, command), (43, 42, "child-process")])
+                self.assertEqual(fn.call_count, 1)
+
+    def test_signed_uid_keeps_unsigned_current_owner_identity(self):
+        result = types.SimpleNamespace(stdout=(
+            "1 0 0 S /sbin/launchd\n"
+            "42 1 -2 S C:\\Steam\\steam.exe\n"))
+        fn = mock.Mock(return_value=0)
+        with mock.patch.object(laa.subprocess, "run", return_value=result), \
+                mock.patch.object(laa.os, "getuid", return_value=4294967294), \
+                mock.patch.object(laa.ctypes, "CDLL", return_value=types.SimpleNamespace(proc_pidpath=fn)), \
+                mock.patch.object(laa.os, "kill", return_value=None), \
+                self.assertRaisesRegex(laa.LargeAddressError, "Could not inspect process 42"):
+            laa.strict_processes(self.c)
+        fn.assert_called_once()
+
+    def test_malformed_process_numbers_fail_closed(self):
+        for numbers in ("0 1 501", "-42 1 501", "+42 1 501", "42 -1 501",
+                        "2147483648 1 501", "42 2147483648 501",
+                        "42 1 -", "42 1 --2", "42 1 +2", "42 1 2.0",
+                        "42 1 -2147483649", "42 1 4294967296", "42 1 ²"):
+            with self.subTest(numbers=numbers):
+                result = types.SimpleNamespace(stdout=(
+                    "1 0 0 S /sbin/launchd\n" + numbers + " S /unrelated/service\n"))
+                with mock.patch.object(laa.subprocess, "run", return_value=result), \
+                        mock.patch.object(laa.ctypes, "CDLL") as lib, \
+                        self.assertRaisesRegex(laa.LargeAddressError, "complete process inventory"):
+                    laa.strict_processes(self.c)
+                lib.assert_not_called()
+
     def test_ps_failure_and_incomplete_snapshot_fail_closed(self):
         for outcome in (subprocess.CalledProcessError(1, "ps"), types.SimpleNamespace(stdout=""),
                         types.SimpleNamespace(stdout="not a process row")):

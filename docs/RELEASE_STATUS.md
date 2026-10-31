@@ -1,5 +1,114 @@
 # Release validation
 
+## Beta.8 — 31 October 2026
+
+This release combines DA:O-only reverb compatibility, the unchanged revision-10
+audio timing policy with automatic recovery from temporary pauses, the Developer
+console toggle, and a fix for valid signed macOS user IDs in process inventory.
+The UID failure was reproduced and fixed; the original reporter has not yet
+confirmed their own machine's result.
+
+- All 412 launcher/controller tests pass, including console rollback, process
+  inventory, component coexistence, interrupted updates and package-source checks.
+- The existing audio policy scenarios and 52 adapter cases pass. The reverb
+  wrapper/startup passed 54 sanitizer-backed cases, public-export/PE32 calling
+  convention checks, and an identical clean-source rebuild.
+- The packaged app passes empty-install controller, bundled Python, certificate
+  store and ad-hoc signature checks. Players need no developer tools.
+- The production reverb component passed a real install/remove/reinstall cycle
+  with Wine stopped. Removal restored the registry exactly; game, FMOD, display
+  settings, timing component/receipt and runtime remained unchanged.
+- Actual gameplay confirmed production reverb callback execution alongside the
+  existing timing fix and optional 4 GB mode. The tester reported normal audio
+  in the affected area. Exact duration is not asserted. The previous combined
+  private trial also stayed normal.
+
+The earlier native-helper publication gate was reproduced during candidate
+validation. Its helper exited in about 303 ms, but the waiting thread did not
+finish before the 25-second deadline. Main-thread UI delivery was prompt. The
+final build replaces that wait with a bounded process-state check, independent
+of notification delivery. Tests cover missed/premature notifications, normal
+and concurrent helpers, timeout cleanup and stale UI responses. Over 100 actual
+packaged status/display helpers completed without timeout after the correction,
+and the UI correctly returned to the game-not-running state.
+
+The final bundle is build **8.3**. Its two audio DLLs are identical to those used
+in the production gameplay check. Bounded local lifecycle metadata remains for
+support; it contains no helper output, account data or user paths.
+
+A full new fresh-install run, a separately confirmed final-build restart/save
+cycle, M1 Air gameplay and standard-edition console use remain unverified. Prior
+save/reload and Ultimate Edition console checks are recorded below. The release
+keeps these beta limitations explicit. Final archive checksums and installer/
+public-download verification accompany the release as `VALIDATION.json`.
+
+## Developer console source review — 30 October 2026
+
+The console source is ready to integrate with the next audio change. No new
+release, version change or installed-app replacement was made for this review.
+
+- A failed XML replacement while turning the console off now retains the
+  original enabling receipt. Retrying restores the original launch entry exactly
+  and preserves unrelated edits made after the failure.
+- All 350 launcher/controller tests pass, including 28 console tests. The two
+  new regression tests fail against the prior implementation and pass with the
+  fix. All fixtures use disposable files and do not start the game.
+- The native launcher compiles for Apple Silicon. The public source audit passes
+  with 98 files; the build and source allowlist both include the console module.
+  This review did not build a new production app bundle or installer.
+
+The previously reported native helper-completion timeout remains a publication
+gate. A disposable bundle using the unchanged runner completed 240 concurrent
+synthetic helper calls without an unexpected timeout. Thirteen intentional
+timeout cases returned the expected timeout result. One initial forced-kill case
+used both cleanup waits; nine subsequent traced forced-kill cases signaled
+completion and confirmed that their child PID no longer existed. These checks
+did not reproduce the stale game-running status or establish its cause, so the
+runner remains unchanged.
+
+The next diagnostic needs one occurrence in the native app with a shared request
+ID across helper launch/PID, observed exit, waiter completion and main-thread
+status application. That separates a process-completion delay from a dropped or
+outdated UI update. Do not record raw controller output or user file paths for
+that trace. Complete the combined app build, package checks and gameplay checks
+after the audio change is selected. Ultimate Edition's previous live on/off
+confirmation below still applies to that earlier build; standard edition still
+has automated coverage only.
+
+## Developer console development build — 29 October 2026
+
+`0.2.0-beta.8-dev.1` (build 8.1) adds a remembered Developer console switch.
+This is a local test build; the published beta.7 release remains unchanged.
+
+- All 348 launcher/controller tests pass, including 26 new console tests.
+- The packaged app passes the empty-install smoke check and strict code-signature
+  verification. The public source audit passes with 98 files.
+- On the installed Ultimate Edition, enabling changes only its game-launch XML
+  entry; disabling restores the original XML byte-for-byte. The Steam executable
+  hash is unchanged. Tests also cover preserving later edits and Steam replacing
+  the XML, interrupted writes, unsupported files and process-visibility failures.
+- The native switch displays correctly, remembers its choice after restarting,
+  and leaves game files untouched until Play. Play with the switch on enables
+  the flag in the installed XML and starts the official launcher.
+- The audio and 4 GB components are byte-identical to beta.7. Both remain enabled
+  in the local test environment.
+
+The user confirmed that the enabled console responds in-game and gameplay
+resumes afterward. After switching it off and relaunching, the user confirmed
+that gameplay works normally and the console no longer opens. The original XML
+was restored byte-for-byte.
+Standard edition's per-launch argument is covered by automated tests, not a live installation test.
+No visible console font or key-binding change is included. See
+[Developer console](DEVELOPER_CONSOLE.md).
+
+An existing native helper-completion timeout also appeared during testing: the
+app retained an outdated game-running status even though the helper had exited.
+Reopening the native launcher cleared it. Neither 96 isolated process checks nor
+the actual bundled status/display queries reproduced it; queries completed in
+about 0.37–0.46 seconds with the existing runner and a same-thread prototype.
+No speculative runner change was made. This intermittent issue remains to be
+resolved before publication; the console's on/off gameplay checks passed.
+
 ## Beta.7 — 29 October 2026
 
 Beta.7 adds the

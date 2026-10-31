@@ -7,7 +7,7 @@ setting to enable: press **Play** as usual.
 
 The launcher checks the game, its FMOD audio library and the compatibility
 runtime before applying the fix. Unsupported versions and existing third-party
-`dsound.dll` mods are preserved. An unsupported installation with no managed
+`dsound.dll` or `winmm.dll` mods are preserved. An unsupported installation with no managed
 audio fix can still launch normally without it.
 
 ## What changes
@@ -17,6 +17,17 @@ loading rule that applies only to `DAOrigins.exe`. It adjusts when the game's
 identified audio-producing thread waits. When the available audio reserve is
 unsafe, assistance pauses; it can resume once fresh, complete audio coverage has
 recovered. Uncertain identity or broken playback history keeps assistance off.
+
+Beta.8 also adds a verified `winmm.dll` with its own game-only loading rule.
+This replaces the identified costly SFX reverb processing with a callback that
+preserves dry audio and omits the wet reverb effect. Rooms and other ambience can
+sound less reverberant. It leaves the normal FMOD processing block size unchanged.
+
+The reverb replacement stays active if timing assistance pauses. Temporary
+reserve-related pauses automatically recover after three fresh qualified audio
+bursts establish safe coverage; they do not require restarting the game.
+Permanent loss of trustworthy tracking still disables timing assistance for the
+session. The reverb component does not remove that protection.
 
 The game executable, FMOD library, saves and the game’s audio assets are not
 replaced. The fix does not change shared macOS audio settings or install a system
@@ -37,6 +48,22 @@ place. Selecting an unsupported edition clears the previous managed audio rule
 before launching with the normal runtime audio handling.
 
 ## Current validation and limits
+
+**0.2.0-beta.8 validation:** The production reverb component activated in the
+supported Ultimate Edition alongside the unchanged timing component and 4 GB
+support. The tester reported normal audio in the previously affected busy area.
+An earlier combined private trial also stayed normal. These are listening
+reports from one M5 Pro MacBook, not a claim that every scene or Mac is fixed.
+
+The final native launcher additionally fixes a demonstrated completion-wait
+failure: a helper could exit normally while its waiting thread did not finish.
+The new completion check passed missed-notification and cleanup regressions and
+over 100 actual packaged status/display requests without an unexpected timeout.
+This launcher change does not change either tested audio DLL.
+
+A new full fresh-install run and a separately confirmed final-build restart/save
+cycle have not been repeated for beta.8. Earlier save/reload validation is below.
+The M1 Air reports still need testing on affected machines.
 
 **0.2.0-beta.7 validation:** The production audio
 component and **4 GB memory support** have now been tested together on the M5 Pro

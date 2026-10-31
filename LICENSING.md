@@ -9,9 +9,11 @@ Copyright (c) 2026 David Richard Smith and Origins Launcher contributors.
 David Richard Smith is the project maintainer and licensor for the work he is
 entitled to license. Contributors retain copyright in their respective work;
 existing third-party notices must be preserved. The modified Wine DirectSound
-component in `audio-compat/` is separately licensed under LGPL-2.1-or-later,
+and reverb components in `audio-compat/` and `reverb-compat/` are separately
+licensed under LGPL-2.1-or-later,
 including its added compatibility code and build material; see
-[audio component notices](audio-compat/README.md). This notice does not claim
+[audio component notices](audio-compat/README.md) and
+[reverb component notices](reverb-compat/README.md). This notice does not claim
 ownership of the game, dependencies, or another artist's work.
 
 Origins Launcher is free software: you can redistribute it and/or modify it under

@@ -294,3 +294,22 @@ by itself replace the complete source archive accompanying the modified Wine DLL
 Keep beta.6 downloads unchanged. Update public download links only when the new
 release's exact artifacts, source, notices and checksums are available; record
 its public-host download verification separately from local package validation.
+
+## Reverb component checks for beta.8 and later
+
+Build and test `reverb-compat/` separately from the existing timing component.
+Keep the full matching Wine source archive, and package it both inside the app
+and alongside the installer. The build rejects stale overlay, recipe, source
+archive or DLL hashes. Run the reverb host tests as well as the launcher tests.
+
+Validate the final app's install/remove/reinstall path while the Wine session is
+closed. Verify the current game's reverb callback status and the independent
+existing audio safeguard status after an actual launch. Record the tester's
+listening result separately from these counters. Check save/reload after
+restarting through the app, the Developer console on/off path and the optional
+4 GB mode. Preserve foreign DLLs, loading rules and user settings on conflicts.
+
+The reverb replacement intentionally omits the wet SFX reverb effect. Describe
+that audible tradeoff, unsupported-version behavior, and remaining hardware
+coverage limits in release notes. Do not publish private diagnostic builds,
+recordings, live registry backups or game assets as part of the source.

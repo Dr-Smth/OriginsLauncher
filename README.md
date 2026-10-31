@@ -4,16 +4,17 @@ An unofficial macOS launcher for **Dragon Age: Origins**.
 
 It runs Steam and the game through Wine, without a Windows install/VM. The native app handles setup, launch and display settings.
 
-**[Download Origins Launcher for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/OriginsLauncher-0.2.0-beta.7-arm64-UNSIGNED-BETA.dmg)**
+**[Download Origins Launcher for Apple Silicon](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.8/OriginsLauncher-0.2.0-beta.8-arm64-UNSIGNED-BETA.dmg)**
 
 This is an unsigned beta. macOS may block the first launch; follow the
 [Open Anyway instructions](docs/TROUBLESHOOTING.md#macos-will-not-open-a-downloaded-app)
 if you trust the download.
 
-[Release notes and known limitations](https://github.com/Dr-Smth/OriginsLauncher/releases/tag/v0.2.0-beta.7)
-· [Launcher source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/OriginsLauncher-0.2.0-beta.7-source.zip)
-· [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/SHA256SUMS.txt)
-· [Audio component source](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.7/origins-audio-1.0.0-beta.1-source.tar.gz)
+[Release notes and known limitations](https://github.com/Dr-Smth/OriginsLauncher/releases/tag/v0.2.0-beta.8)
+· [Launcher source ZIP](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.8/OriginsLauncher-0.2.0-beta.8-source.zip)
+· [SHA-256 checksums](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.8/SHA256SUMS.txt)
+· [Audio component source](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.8/origins-audio-1.0.0-beta.1-source.tar.gz)
+· [Reverb component source](https://github.com/Dr-Smth/OriginsLauncher/releases/download/v0.2.0-beta.8/origins-reverb-1.0.0-beta.1-source.tar.gz)
 
 ## The App
 
@@ -77,11 +78,20 @@ Save and quit the game before changing display settings. See
 
 ## Audio and memory support
 
-Beta.7 includes automatic DA:O-only audio compatibility for supported game and
-runtime versions, aimed at reducing crackling and repeated dialogue.
+Beta.8 includes automatic DA:O-only audio compatibility for supported game and
+runtime versions, aimed at reducing crackling and repeated dialogue. It combines
+a reverb replacement with the existing timing fix and automatic recovery from
+temporary pauses. Environmental reverb is reduced; the game’s dry sound remains.
 Optional **4 GB memory support** in the launcher lets DA:O use a larger address space without changing the Steam game executable.
 
 See [Audio compatibility](docs/AUDIO.md) for scope and current limitations.
+
+## Developer console
+
+Enable **Developer console** in the launcher before pressing Play. The usual
+console key is grave/backtick; console text may be invisible without a separate
+font mod. Save and close the game before changing the switch. See
+[Developer console](docs/DEVELOPER_CONSOLE.md) for details.
 
 ## Your saves/files
 
@@ -157,4 +167,5 @@ exact source shipped with that installer. See the [release record](docs/RELEASE_
 This project is not endorsed by or affiliated with EA or its licensors, BioWare,
 Valve, Apple, Sikarugir or the Wine project. Product names identify compatibility
 and remain the trademarks of their respective owners.
+
 

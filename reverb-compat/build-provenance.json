@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "component": "origins-reverb",
+  "version": "1.0.0-beta.1",
+  "dll": {
+    "sha256": "f9b0720a1a685fc2c6d5d1939e5ea6a89279bc557f207fa31a242d39132ff3a2",
+    "bytes": 241664
+  },
+  "source_manifest_sha256": "330c1e24b3ebdca1bc909f0b5630668422f21a537dd38f0d86bb79815314799a",
+  "build_recipe_sha256": "7176f0e1c84e9e857b4f04fabda12f3ff875833657078debded2ddeaeb01db83",
+  "wine_archive_sha256": "f09e8153aa46a581d2b56a5b1363b04832070b9409d9244a68cf482b243ff14a",
+  "configure_arguments": [
+    "../wine-wine-11.0/configure",
+    "--enable-archs=i386",
+    "--without-x",
+    "--without-freetype",
+    "--without-vulkan",
+    "--without-gnutls",
+    "CC=clang -arch x86_64",
+    "CXX=clang++ -arch x86_64",
+    "--host=x86_64-apple-darwin",
+    "BISON=../toolchain/bison",
+    "ac_cv_mabi_ms=yes"
+  ],
+  "make_arguments": [
+    "make",
+    "-j4",
+    "i386_CFLAGS=-O2 -g0",
+    "i386_LDFLAGS= --no-default-config -fms-hotpatch -Wl,/debug:none,/timestamp:0",
+    "dlls/winmm/i386-windows/winmm.dll"
+  ],
+  "debug_data": false,
+  "pe_timestamp": 0,
+  "live_actions": false,
+  "tools": {
+    "clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "lld": "LLD 19.1.7 (https://github.com/rust-lang/llvm-project.git 7e8c93c87c611f21d9bd95100563392f4c18bfe7)",
+    "bison": "bison (GNU Bison) 3.8.2",
+    "flex": "flex 2.6.4"
+  }
+}

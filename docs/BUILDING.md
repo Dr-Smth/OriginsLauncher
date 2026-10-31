@@ -19,10 +19,18 @@ overlay and build recipe against `audio-compat/component.json` before copying
 them into the bundle. It refuses missing or mismatched materials. The default
 artifact folder is `../origins-audio-build` relative to the repository.
 
-From the repository root, after building the audio component:
+Beta.8 additionally requires the DA:O reverb component. Build it using
+[reverb-compat/README.md](../reverb-compat/README.md), then set
+`DAO_REVERB_ARTIFACT_DIR` to the folder containing its `winmm.dll` and complete
+matching source archive. The default is `../origins-reverb-build/artifacts`.
+Both components are hash-verified and their complete source is included in the
+app; an older audio component alone is not a complete beta.8 build.
+
+From the repository root, after building both components:
 
 ```sh
 DAO_AUDIO_ARTIFACT_DIR="$PWD/../origins-audio-build" \
+DAO_REVERB_ARTIFACT_DIR="$PWD/../origins-reverb-build/artifacts" \
   bash source/build.sh "$PWD/../Origins Launcher.app"
 python3 -B -m unittest discover -s source/tests -v
 ```
