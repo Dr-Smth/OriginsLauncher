@@ -81,7 +81,7 @@ Save and quit the game before changing display settings. See
 Beta.8 includes automatic DA:O-only audio compatibility for supported game and
 runtime versions, aimed at reducing crackling and repeated dialogue. It combines
 a reverb replacement with the existing timing fix and automatic recovery from
-temporary pauses. Environmental reverb is reduced; the game’s dry sound remains.
+temporary pauses.
 Optional **4 GB memory support** in the launcher lets DA:O use a larger address space without changing the Steam game executable.
 
 See [Audio compatibility](docs/AUDIO.md) for scope and current limitations.
