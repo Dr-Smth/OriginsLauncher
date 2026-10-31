@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "component": "origins-reverb",
+  "version": "1.0.0-beta.1",
+  "license": "LGPL-2.1-or-later",
+  "upstream": {
+    "name": "Wine",
+    "version": "11.0",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-11.0",
+    "sha256": "f09e8153aa46a581d2b56a5b1363b04832070b9409d9244a68cf482b243ff14a",
+    "root": "wine-wine-11.0"
+  },
+  "overlay": {
+    "dlls/winmm/factory_scope.h": {
+      "sha256": "792bc6df7dfdce13a41c9b501d7f3d1c31e9dd18b29083eb191ad66f7a4899e0",
+      "bytes": 3608
+    },
+    "dlls/winmm/origins_reverb_hooks.c": {
+      "sha256": "35315044bc790a91fca69bda084ec35f6dbe17351daa34a65c8ab185314f684e",
+      "bytes": 18965
+    },
+    "dlls/winmm/origins_reverb_hooks.h": {
+      "sha256": "0f3049039dd0f90796fa9fdcfb59cba1847e0ce564a75b3e285b58a7df48549d",
+      "bytes": 1361
+    },
+    "dlls/winmm/origins_reverb_startup.c": {
+      "sha256": "5813fb7fe7ea2540f26a3fd43c8e1b0cc144fe2e463b78b88130a6c7c7dc65e5",
+      "bytes": 700
+    },
+    "dlls/winmm/reverb_config.h": {
+      "sha256": "717d8a9930d4bee05bdb4a2a70045b7800b5b11bff372953890a68af92a40055",
+      "bytes": 342
+    },
+    "dlls/winmm/reverb_dry.c": {
+      "sha256": "c1d73b20f3e8c4c3e6e2acbe8839c1f6728bdcc8a2e352bbbc29107de0c7ac4f",
+      "bytes": 5110
+    },
+    "dlls/winmm/reverb_dry.h": {
+      "sha256": "cbdb516d1334226a3d644d9f1445f5f3fffae2c12099d790a1233db3226edab6",
+      "bytes": 1286
+    },
+    "dlls/winmm/reverb_scope.h": {
+      "sha256": "ec4d08bffd3ffdcb8da59255e25a88457135698074de9704b337887427cf9b57",
+      "bytes": 1531
+    },
+    "dlls/winmm/winmm.c": {
+      "sha256": "92ddc2f66e634f5331e9349e48c3cba66624795dae09e26a60cfa561507ba84a",
+      "bytes": 55563
+    },
+    "dlls/winmm/winmm.spec": {
+      "sha256": "8139149e997e90aad0a0bdab62eb7b38da46c029f840d395e253128c996def4f",
+      "bytes": 7785
+    },
+    "tools/winebuild/import.c": {
+      "sha256": "9521c4bb700dd53163f74d17b0312c8bcbc77da0f1e4794aaa8c644b66ac47c1",
+      "bytes": 57145
+    }
+  }
+}

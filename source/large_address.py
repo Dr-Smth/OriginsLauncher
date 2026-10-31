@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import stat
 import struct
@@ -237,9 +238,18 @@ def strict_processes(c):
         rows = []
         for line in result.stdout.splitlines():
             fields = line.strip().split(None, 4)
-            if len(fields) != 5 or not all(x.isdigit() for x in fields[:3]):
+            if (len(fields) != 5
+                    or not all(re.fullmatch(r"[0-9]{1,10}", value) for value in fields[:2])
+                    or not re.fullmatch(r"-?[0-9]{1,10}", fields[2])):
                 raise LargeAddressError("Could not read a complete process inventory; 4 GB support was not changed.")
-            rows.append((int(fields[0]), int(fields[1]), int(fields[2]), fields[3], fields[4]))
+            pid, parent, uid = map(int, fields[:3])
+            if not (0 < pid <= 0x7fffffff and 0 <= parent <= 0x7fffffff
+                    and -0x80000000 <= uid <= 0xffffffff):
+                raise LargeAddressError("Could not read a complete process inventory; 4 GB support was not changed.")
+            # Darwin ps can render uid_t as signed (nobody is -2), whereas
+            # os.getuid() returns its unsigned 32-bit identity. Keep these rows
+            # and normalize only the UID; PIDs must remain strictly positive.
+            rows.append((pid, parent, uid & 0xffffffff, fields[3], fields[4]))
         if not any(row[0] == 1 for row in rows):
             raise LargeAddressError("Could not verify process visibility; 4 GB support was not changed.")
         lib = ctypes.CDLL("/usr/lib/libproc.dylib")

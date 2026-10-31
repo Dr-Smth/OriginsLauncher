@@ -29,6 +29,7 @@ class PackagingTests(unittest.TestCase):
         (self.app / "Contents/Info.plist").write_text("fixture; no executable")
         resources = self.app / "Contents/Resources"
         resources.mkdir()
+        (resources / "VERSION").write_bytes((self.root / "VERSION").read_bytes())
         for name in packaging.NOTICE_FILES:
             text = "Fixture notice: " + name + "\n"
             (self.root / name).write_text(text)
@@ -102,6 +103,26 @@ class PackagingTests(unittest.TestCase):
         self.assertFalse(report["unsigned_beta"])
         self.assertTrue(self.instructions.startswith("LOCAL PREVIEW"))
         self.assertFalse(any("stapler" in c or "--assess" in c for c in self.commands))
+
+    def test_stale_helper_is_rejected_before_archives(self):
+        source = self.root / "source"
+        source.mkdir()
+        (source / "daoctl.py").write_text("new controller")
+        (self.app / "Contents/Resources/daoctl.py").write_text("old controller")
+        with self.assertRaisesRegex(ValueError, "App helper differs"):
+            self.package(unsigned_beta=True)
+        self.assertFalse(self.output.exists())
+        self.run_mock.assert_not_called()
+
+    def test_reverb_manager_requires_component_even_if_manifest_missing(self):
+        source = self.root / "source"
+        source.mkdir()
+        (source / "reverb_fix.py").write_text("fixture manager")
+        (self.app / "Contents/Resources/reverb_fix.py").write_text("fixture manager")
+        with self.assertRaisesRegex(ValueError, "Missing, linked"):
+            self.package(unsigned_beta=True)
+        self.assertFalse(self.output.exists())
+        self.run_mock.assert_not_called()
 
     def test_local_artwork_cannot_enter_any_distribution_package(self):
         (self.app / "Contents/Resources/LOCAL-ARTWORK.json").write_text('{"scope":"local-only"}')

@@ -42,8 +42,29 @@ before sharing: hardware, versions and configuration can still identify a setup.
 Raw Steam, Wine and installer logs may contain personal details; do not post them
 without inspection and redaction.
 
+The native app also keeps a bounded helper-lifecycle diagnostic in
+`~/Library/Logs/OriginsLauncher/helper-events.jsonl`, with one rotated
+`helper-events.previous.jsonl`. Each file is limited to 1 MiB and created with
+owner-only permissions. These local records contain random request/session IDs,
+allowlisted command names, process IDs, monotonic timing, completion/timeout
+events and whether a decoded game-running status was applied or superseded.
+They exclude command arguments, helper output, error text, account details and
+user file paths. They are not uploaded automatically. The log may omit events
+if its bounded queue fills or a write fails; missing events are not proof that
+the corresponding action did not happen. You may delete these two log files
+while the native launcher is closed.
+
 Do not share the whole data root, prepared prefix, registry, Steam `config` or
 `userdata` folders. Those are not release artifacts and may contain account data.
+
+## Developer console files
+
+The development build's developer-console switch also keeps per-installation
+launcher XML backups and receipts under `data/developer-console`. These files
+stay local and are retained after switching the console off so an interrupted
+change can be retried safely. The current XML determines whether the console is
+enabled; an old restoration receipt does not enable it. See
+[Developer console](DEVELOPER_CONSOLE.md) for its scope.
 
 ## Audio compatibility files
 
@@ -66,3 +87,10 @@ not prevent playback. The component does not upload these files or record the
 content of dialogue, music or sound effects. Old process status files may remain
 until the local environment is cleaned up; they do not by themselves prove that
 the current game is running or that an audible fault occurred.
+
+The separate reverb component keeps its receipt and original registry backup
+under `data/reverb-fix`. These can contain local settings and should not be
+posted publicly without inspection. Its per-process aggregate status files are
+under the same prefix at `drive_c/dao-support/origins-reverb/status`, separately
+from the timing-assistance status above. They describe component activation and
+counters, not recorded audio, dialogue, screen activity or CPU profiles.

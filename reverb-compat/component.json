@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "origins-reverb",
+  "version": "1.0.0-beta.1",
+  "dll": {
+    "file": "winmm.dll",
+    "sha256": "f9b0720a1a685fc2c6d5d1939e5ea6a89279bc557f207fa31a242d39132ff3a2",
+    "bytes": 241664
+  },
+  "game": {
+    "file": "DAOrigins.exe",
+    "sha256": "400c2c9e97bb1a534121553be66f202429ef6f7320c93c86f9b7a491864647bd"
+  },
+  "fmod": {
+    "file": "fmodex.dll",
+    "sha256": "1eeebe3793e1f2ec3b03aa4f0bdd373a60a657015a4d125d8febb62f6ace01b9"
+  },
+  "fmod_event": {
+    "file": "fmod_event.dll",
+    "sha256": "4caa42a14fd2dfb1fc26dbe04887c6ad90abe11bb1926002b8e19ab045bdbeb0"
+  },
+  "runtime": {
+    "base": "runtime_contents",
+    "engine_version": "WS12WineSikarugir11.0_1",
+    "engine_archive_sha256": "67e29fb3d74f363af39c69ba11f9b13a79812c5db07cf4748672658e4a200a0e",
+    "files": [
+      {
+        "path": "SharedSupport/wine/lib/wine/i386-windows/winmm.dll",
+        "sha256": "d7d918761640931cb8aecc49e1df160633863e3adfc416feb9b12a36df572407"
+      },
+      {
+        "path": "SharedSupport/wine/bin/wine",
+        "sha256": "f309b89a9726ea21dbe1fb60a8cc11aaf11168a952a6cf1a08e6823651acc7dd"
+      }
+    ]
+  },
+  "status_directory": "drive_c/dao-support/origins-reverb/status",
+  "policy_revision": 1,
+  "license": "LGPL-2.1-or-later",
+  "corresponding_source": {
+    "file": "origins-reverb-1.0.0-beta.1-source.tar.gz",
+    "sha256": "a7e5d4e89bcbe6628d022ba04888be30e95207a7beef8a28e020f3bad4597558",
+    "bytes": 53535644
+  },
+  "source_manifest_sha256": "330c1e24b3ebdca1bc909f0b5630668422f21a537dd38f0d86bb79815314799a",
+  "build_recipe_sha256": "7176f0e1c84e9e857b4f04fabda12f3ff875833657078debded2ddeaeb01db83",
+  "changes_buffer_size": false,
+  "automatic_game_only": true
+}

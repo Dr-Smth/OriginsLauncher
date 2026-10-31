@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.2.0-beta.8 — 31 October 2026
+
+- Add automatic DA:O-only reverb compatibility, independently of the existing
+  audio timing safeguards. The replacement keeps dry audio but omits the costly
+  wet SFX reverb effect; ambience can sound less reverberant.
+- Retain automatic recovery from temporary timing pauses. The reverb change
+  stays active during those pauses; permanent loss of trustworthy tracking still
+  safely disables timing assistance.
+- Accept valid signed macOS user IDs in process inventory. This fixes a
+  reproduced cause of “could not read a complete process inventory” on launch,
+  retaining strict ownership and malformed-record checks.
+
+- Fix a native launcher completion wait that could report a timeout after its
+  helper had already exited. Keep bounded, local lifecycle diagnostics.
+- Add a remembered **Developer console** switch beside 4 GB memory support.
+- Pass the console launch flag to Steam for the standard edition; back up and
+  minimally update Ultimate Edition's official launcher XML.
+- Preserve unrelated arguments, manual settings and game files; require the game
+  and its official launcher to be closed before applying an explicit setting.
+- Document the default console key and the game's potentially invisible console
+  text. See [Developer console](docs/DEVELOPER_CONSOLE.md).
+
+The tester reported normal audio in the previously affected area, and the
+production reverb component was confirmed active alongside the unchanged timing
+fix. Coverage remains limited to one Mac; no claim is made that all audio issues
+are resolved, and M1 Air validation remains pending.
+
 ## 0.2.0-beta.7 — 29 October 2026
 
 - Add built-in audio compatibility on Play for exact verified game, FMOD and Wine

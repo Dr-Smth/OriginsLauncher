@@ -38,6 +38,9 @@ private struct LauncherStatus: Decodable {
     var audio_fix_enabled: Bool?
     var audio_fix_managed: Bool?
     var audio_fix_message: String?
+    var console_supported: Bool?
+    var console_enabled: Bool?
+    var console_message: String?
     var phase: String
     var message: String
     var log_path: String
@@ -93,11 +96,125 @@ private struct DisplayOptions: Decodable {
     var ui_scaling_available: Bool
 }
 
+/// Bounded local lifecycle evidence. This accepts only typed metadata: never
+/// helper arguments/output, account data, error text or user file paths.
+private enum HelperTrace {
+    enum Event: String {
+        case requestCreated = "request_created", runStarted = "run_started"
+        case launched, launchFailed = "launch_failed", launchDeclined = "launch_declined"
+        case exitObserverAttached = "exit_observer_attached", exitNotice = "exit_notice_delivered"
+        case completionCheckStarted = "completion_check_started", processExitConfirmed = "process_exit_confirmed"
+        case waitCompleted = "wait_completed", timeout, terminateRequested = "terminate_requested"
+        case killRequested = "kill_requested", cleanupWaitCompleted = "cleanup_wait_completed"
+        case runReturned = "run_returned", mainActor = "main_actor_delivered"
+        case uiApplied = "ui_applied", uiFailed = "ui_failed", uiSuperseded = "ui_superseded", uiOwnerGone = "ui_owner_gone"
+    }
+    struct Request: Sendable {
+        let id = UUID().uuidString
+        let command: String
+        let generation: Int?
+        init(_ command: String, generation: Int? = nil) {
+            let allowed: Set<String> = ["status", "display-options", "setup", "steam", "stop", "play",
+                "install-game", "configure-game", "install-ui-scaling", "diagnostics", "steam-maintain",
+                "steam-maintenance-cancel", "display-apply", "display-confirm", "display-restore"]
+            self.command = allowed.contains(command) ? command : "other"
+            self.generation = generation
+        }
+    }
+    struct Entry: Encodable {
+        let schema = 1
+        let session: String, request: String, command: String, event: String
+        let monotonic_ns: UInt64
+        let generation: Int?
+        let pid: Int32?
+        let status: Int32?
+        let timed_out: Bool?
+        let game_running: Bool?
+        let dropped_before: UInt64
+    }
+    final class Writer: @unchecked Sendable {
+        static let fileLimit = 1024 * 1024
+        private let queue = DispatchQueue(label: "org.originslauncher.helper-trace", qos: .utility)
+        private let slots = DispatchSemaphore(value: 128)
+        private let lock = NSLock()
+        private var dropped: UInt64 = 0
+        private let session = UUID().uuidString
+        private let library: URL?
+        init(library: URL? = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first) {
+            self.library = library
+        }
+        func record(_ request: Request, _ event: Event, pid: Int32?, status: Int32?, timedOut: Bool?, gameRunning: Bool?) {
+            guard slots.wait(timeout: .now()) == .success else {
+                lock.lock(); if dropped < UInt64.max { dropped += 1 }; lock.unlock()
+                return
+            }
+            lock.lock(); let lost = dropped; dropped = 0; lock.unlock()
+            let entry = Entry(session: session, request: request.id, command: request.command, event: event.rawValue,
+                              monotonic_ns: DispatchTime.now().uptimeNanoseconds, generation: request.generation,
+                              pid: pid, status: status, timed_out: timedOut, game_running: gameRunning, dropped_before: lost)
+            queue.async {
+                defer { self.slots.signal() }
+                guard var data = try? JSONEncoder().encode(entry), data.count < 1024 else { return }
+                data.append(10)
+                self.append(data)
+            }
+        }
+        // Only used by the isolated fixture; launch paths never wait for logs.
+        func drain() { queue.sync {} }
+        private func ownedRegular(_ fd: Int32) -> Bool {
+            var info = stat()
+            return fstat(fd, &info) == 0 && info.st_mode & S_IFMT == S_IFREG && info.st_uid == getuid()
+                && info.st_nlink == 1 && info.st_mode & 0o777 == 0o600
+        }
+        private func append(_ data: Data) {
+            guard let library else { return }
+            let logs = library.appendingPathComponent("Logs", isDirectory: true).path
+            guard mkdir(logs, 0o700) == 0 || errno == EEXIST else { return }
+            let logsFD = open(logs, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            guard logsFD >= 0 else { return }; defer { close(logsFD) }
+            guard mkdirat(logsFD, "OriginsLauncher", 0o700) == 0 || errno == EEXIST else { return }
+            let directory = openat(logsFD, "OriginsLauncher", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            guard directory >= 0 else { return }; defer { close(directory) }
+            var directoryInfo = stat()
+            guard fstat(directory, &directoryInfo) == 0, directoryInfo.st_uid == getuid() else { return }
+            var fd = openat(directory, "helper-events.jsonl", O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC, 0o600)
+            guard fd >= 0 else { return }; defer { close(fd) }
+            guard ownedRegular(fd), flock(fd, LOCK_EX | LOCK_NB) == 0 else { return }
+            var info = stat()
+            guard fstat(fd, &info) == 0 else { return }
+            if info.st_size + off_t(data.count) > off_t(Self.fileLimit) {
+                let previous = openat(directory, "helper-events.previous.jsonl", O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+                if previous >= 0 {
+                    let safe = ownedRegular(previous); close(previous)
+                    guard safe else { return }
+                } else if errno != ENOENT { return }
+                guard renameat(directory, "helper-events.jsonl", directory, "helper-events.previous.jsonl") == 0 else { return }
+                close(fd)
+                fd = openat(directory, "helper-events.jsonl", O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC, 0o600)
+                guard fd >= 0, ownedRegular(fd), flock(fd, LOCK_EX | LOCK_NB) == 0 else { return }
+            }
+            _ = data.withUnsafeBytes { bytes in Darwin.write(fd, bytes.baseAddress, bytes.count) }
+        }
+    }
+    private static let writer = Writer()
+    static let observerQueue = DispatchQueue(label: "org.originslauncher.helper-exit", qos: .utility)
+    static func request(_ command: String, generation: Int? = nil) -> Request {
+        let request = Request(command, generation: generation)
+        record(request, .requestCreated)
+        return request
+    }
+    static func record(_ request: Request, _ event: Event, pid: Int32? = nil, status: Int32? = nil,
+                       timedOut: Bool? = nil, gameRunning: Bool? = nil) {
+        writer.record(request, event, pid: pid, status: status, timedOut: timedOut, gameRunning: gameRunning)
+    }
+}
+
 private struct CommandResult {
     let status: Int32
     let output: Data
     let error: String
     let timedOut: Bool
+    let trace: HelperTrace.Request
 }
 
 /// Run the bundled controller without a shell. Files avoid pipe-buffer deadlocks
@@ -139,19 +256,38 @@ private final class LauncherLifetime: @unchecked Sendable {
 }
 
 private enum Controller {
-    static func run(_ arguments: [String], timeout: TimeInterval) -> CommandResult {
+    /// Foundation can know that the child exited while a waitUntilExit run loop
+    /// remains asleep. Recheck its state at most every 100 ms on this worker;
+    /// an exit notification is only a wakeup hint, never the source of truth.
+    /// No extra waiting thread or dependency on a termination callback remains.
+    static func waitForExit(_ process: Process, until deadline: DispatchTime, wake: DispatchSemaphore) -> Bool {
+        while process.isRunning {
+            let now = DispatchTime.now()
+            if now >= deadline { return !process.isRunning }
+            _ = wake.wait(timeout: min(deadline, now + .milliseconds(100)))
+        }
+        return true
+    }
+
+    static func run(_ arguments: [String], timeout: TimeInterval, trace suppliedTrace: HelperTrace.Request? = nil) -> CommandResult {
+        let trace = suppliedTrace ?? HelperTrace.request(arguments.first ?? "other")
+        HelperTrace.record(trace, .runStarted)
+        func result(status: Int32, output: Data, error: String, timedOut: Bool) -> CommandResult {
+            HelperTrace.record(trace, .runReturned, status: status, timedOut: timedOut)
+            return CommandResult(status: status, output: output, error: error, timedOut: timedOut, trace: trace)
+        }
         guard let script = Bundle.main.url(forResource: "daoctl", withExtension: "py") else {
-            return CommandResult(status: 1, output: Data(), error: "The bundled controller is missing. Rebuild or restore the launcher app.", timedOut: false)
+            return result(status: 1, output: Data(), error: "The bundled controller is missing. Rebuild or restore the launcher app.", timedOut: false)
         }
         guard let resources = Bundle.main.resourceURL else {
-            return CommandResult(status: 1, output: Data(), error: "The app’s resources are missing. Download a complete copy of Origins Launcher.", timedOut: false)
+            return result(status: 1, output: Data(), error: "The app’s resources are missing. Download a complete copy of Origins Launcher.", timedOut: false)
         }
         let python = resources.appendingPathComponent("python/bin/python3")
         guard FileManager.default.isExecutableFile(atPath: python.path) else {
-            return CommandResult(status: 1, output: Data(), error: "The app’s bundled helper is missing or damaged. Download a complete copy of Origins Launcher; no separate Python installation is needed.", timedOut: false)
+            return result(status: 1, output: Data(), error: "The app’s bundled helper is missing or damaged. Download a complete copy of Origins Launcher; no separate Python installation is needed.", timedOut: false)
         }
         guard let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            return CommandResult(status: 1, output: Data(), error: "Your Application Support folder could not be located.", timedOut: false)
+            return result(status: 1, output: Data(), error: "Your Application Support folder could not be located.", timedOut: false)
         }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("origins-command-" + UUID().uuidString)
         do {
@@ -185,32 +321,53 @@ private enum Controller {
             process.standardInput = FileHandle.nullDevice
             process.standardOutput = outHandle
             process.standardError = errHandle
-            let finished = DispatchSemaphore(value: 0)
+            let exitWake = DispatchSemaphore(value: 0)
             guard try LauncherLifetime.shared.launch(process, command: arguments.first ?? "") else {
-                return CommandResult(status: 130, output: Data(), error: "The launcher is closing.", timedOut: false)
+                HelperTrace.record(trace, .launchDeclined)
+                return result(status: 130, output: Data(), error: "The launcher is closing.", timedOut: false)
             }
             defer { LauncherLifetime.shared.finished(process) }
-            // An explicit waiter reaps the process even when Foundation delays
-            // terminationHandler delivery on a non-main launch thread.
-            DispatchQueue.global(qos: .utility).async {
-                process.waitUntilExit()
-                finished.signal()
+            let pid = process.processIdentifier
+            HelperTrace.record(trace, .launched, pid: pid)
+            // This notification is independent of Foundation's waiter. Its
+            // delivery time is an observation, not the exact kernel exit time;
+            // a very short-lived helper may exit before the observer attaches.
+            let exitObserver = DispatchSource.makeProcessSource(identifier: pid, eventMask: .exit, queue: HelperTrace.observerQueue)
+            exitObserver.setEventHandler {
+                HelperTrace.record(trace, .exitNotice, pid: pid)
+                exitWake.signal()
             }
-            let timedOut = finished.wait(timeout: .now() + timeout) == .timedOut
+            exitObserver.activate()
+            HelperTrace.record(trace, .exitObserverAttached, pid: pid)
+            defer { exitObserver.cancel() }
+            HelperTrace.record(trace, .completionCheckStarted, pid: pid)
+            let timedOut = !waitForExit(process, until: .now() + timeout, wake: exitWake)
+            HelperTrace.record(trace, timedOut ? .timeout : .waitCompleted, pid: pid, timedOut: timedOut)
             if timedOut {
-                if process.isRunning { process.terminate() }
-                if finished.wait(timeout: .now() + 3) == .timedOut, process.isRunning {
-                    kill(process.processIdentifier, SIGKILL)
-                    _ = finished.wait(timeout: .now() + 3)
+                if process.isRunning {
+                    HelperTrace.record(trace, .terminateRequested, pid: pid)
+                    process.terminate()
                 }
+                let cleanupTimedOut = !waitForExit(process, until: .now() + 3, wake: exitWake)
+                HelperTrace.record(trace, .cleanupWaitCompleted, pid: pid, timedOut: cleanupTimedOut)
+                if cleanupTimedOut, process.isRunning {
+                    HelperTrace.record(trace, .killRequested, pid: pid)
+                    kill(process.processIdentifier, SIGKILL)
+                    let killTimedOut = !waitForExit(process, until: .now() + 3, wake: exitWake)
+                    HelperTrace.record(trace, .cleanupWaitCompleted, pid: pid, timedOut: killTimedOut)
+                }
+            }
+            if !process.isRunning {
+                HelperTrace.record(trace, .processExitConfirmed, pid: pid, status: process.terminationStatus)
             }
             try? outHandle.synchronize()
             try? errHandle.synchronize()
             let output = (try? Data(contentsOf: outURL)) ?? Data()
             let error = (try? String(contentsOf: errURL, encoding: .utf8)) ?? ""
-            return CommandResult(status: timedOut ? 124 : process.terminationStatus, output: output, error: error, timedOut: timedOut)
+            return result(status: timedOut ? 124 : process.terminationStatus, output: output, error: error, timedOut: timedOut)
         } catch {
-            return CommandResult(status: 1, output: Data(), error: error.localizedDescription, timedOut: false)
+            HelperTrace.record(trace, .launchFailed)
+            return result(status: 1, output: Data(), error: error.localizedDescription, timedOut: false)
         }
     }
 
@@ -255,12 +412,15 @@ private final class LauncherModel: ObservableObject {
     @Published var selectedUISize = "comfortable"
     @Published var selectedDisplayMode = "fullscreen"
     @Published private(set) var selectedLargeAddressAware = false
+    @Published private(set) var selectedDeveloperConsole = false
+    private var developerConsolePreferenceChosen = false
     private var statusRequest = 0
     private var displayRequest = 0
     private var displayFetchFailed = false
     private var displayDefaultsChosen = false
     private let displayPreferenceKey = "display-selection-v1"
     private let largeAddressPreferenceKey = "large-address-aware-v1"
+    private let developerConsolePreferenceKey = "developer-console-v1"
     private var timer: Timer?
     private var lastSteamMaintenanceStarted: Date?
 
@@ -268,6 +428,10 @@ private final class LauncherModel: ObservableObject {
         // Only an explicit choice saved by this UI opts in. A runtime already
         // modified elsewhere must not silently enable the user's selection.
         selectedLargeAddressAware = UserDefaults.standard.object(forKey: largeAddressPreferenceKey) as? Bool ?? false
+        if let saved = UserDefaults.standard.object(forKey: developerConsolePreferenceKey) as? Bool {
+            selectedDeveloperConsole = saved
+            developerConsolePreferenceChosen = true
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
@@ -350,16 +514,25 @@ private final class LauncherModel: ObservableObject {
         refreshing = true
         statusRequest += 1
         let request = statusRequest
+        let trace = HelperTrace.request("status", generation: request)
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let result = Controller.run(["status"], timeout: 25)
+            let result = Controller.run(["status"], timeout: 25, trace: trace)
             let object = Controller.object(result.output)
             let normalized = object.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
             let status = normalized.flatMap { try? JSONDecoder().decode(LauncherStatus.self, from: $0) }
             Task { @MainActor in
-                guard let self, request == self.statusRequest else { return }
+                HelperTrace.record(trace, .mainActor, status: result.status, gameRunning: status?.game_running)
+                guard let self else { HelperTrace.record(trace, .uiOwnerGone); return }
+                guard request == self.statusRequest else {
+                    HelperTrace.record(trace, .uiSuperseded, gameRunning: status?.game_running); return
+                }
                 self.refreshing = false
                 if result.status == 0, let status {
                     self.status = status
+                    HelperTrace.record(trace, .uiApplied, gameRunning: status.game_running)
+                    if !self.developerConsolePreferenceChosen {
+                        self.selectedDeveloperConsole = status.console_enabled == true
+                    }
                     self.statusFetchError = ""
                     if !self.steamMaintenanceIsError {
                         self.steamMaintenanceMessage = ""
@@ -367,6 +540,7 @@ private final class LauncherModel: ObservableObject {
                     if allowSteamMaintenance { self.maintainSteam(after: status) }
                     if self.displaySettingsReady && self.displayOptions == nil { self.loadDisplayOptions() }
                 } else {
+                    HelperTrace.record(trace, .uiFailed, status: result.status, timedOut: result.timedOut)
                     self.status?.compatibility_verified = false
                     self.statusFetchError = Controller.failure(result)
                 }
@@ -387,14 +561,17 @@ private final class LauncherModel: ObservableObject {
         refreshing = false
         displayRequest += 1
         displayLoading = false
+        let trace = HelperTrace.request("steam-maintain")
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let result = Controller.run(["steam-maintain"], timeout: 180)
+            let result = Controller.run(["steam-maintain"], timeout: 180, trace: trace)
             let payload = Controller.object(result.output)
             Task { @MainActor in
-                guard let self else { return }
+                HelperTrace.record(trace, .mainActor, status: result.status)
+                guard let self else { HelperTrace.record(trace, .uiOwnerGone); return }
                 self.busy = false
                 self.busyLabel = ""
                 let success = result.status == 0 && payload?["ok"] as? Bool == true
+                HelperTrace.record(trace, success ? .uiApplied : .uiFailed, status: result.status, timedOut: result.timedOut)
                 if success {
                     if let active = payload?["steam_maintenance_active"] as? Bool {
                         self.status?.steam_maintenance_active = active
@@ -424,8 +601,13 @@ private final class LauncherModel: ObservableObject {
             selectedDisplayPreset?.fullscreen == (selectedDisplayMode == "fullscreen")
     }
     var playArguments: [String] {
-        ["--preset", selectedPresetID, "--ui-size", selectedUISize,
+        var arguments = ["--preset", selectedPresetID, "--ui-size", selectedUISize,
          "--large-address-aware", selectedLargeAddressAware ? "on" : "off"]
+        // No saved choice leaves a manually configured console untouched.
+        if developerConsolePreferenceChosen {
+            arguments += ["--developer-console", selectedDeveloperConsole ? "on" : "off"]
+        }
+        return arguments
     }
     var canChangeLargeAddressAware: Bool {
         displaySettingsReady && status?.runtime_ready == true && !busy &&
@@ -436,6 +618,16 @@ private final class LauncherModel: ObservableObject {
         guard canChangeLargeAddressAware, !enabled || status?.laa_supported == true else { return }
         selectedLargeAddressAware = enabled
         UserDefaults.standard.set(enabled, forKey: largeAddressPreferenceKey)
+    }
+    var canChangeDeveloperConsole: Bool {
+        displaySettingsReady && !busy && status?.game_running != true && statusFetchError.isEmpty &&
+            (status?.console_supported == true || selectedDeveloperConsole)
+    }
+    func chooseDeveloperConsole(_ enabled: Bool) {
+        guard canChangeDeveloperConsole, !enabled || status?.console_supported == true else { return }
+        selectedDeveloperConsole = enabled
+        developerConsolePreferenceChosen = true
+        UserDefaults.standard.set(enabled, forKey: developerConsolePreferenceKey)
     }
     private func persistDisplaySelection() {
         guard canPlayWithDisplaySelection else { return }
@@ -468,15 +660,19 @@ private final class LauncherModel: ObservableObject {
         displayLoading = true
         displayRequest += 1
         let request = displayRequest
+        let trace = HelperTrace.request("display-options", generation: request)
         DispatchQueue.global(qos: .utility).async { [weak self] in
-            let result = Controller.run(["display-options"], timeout: 25)
+            let result = Controller.run(["display-options"], timeout: 25, trace: trace)
             let object = Controller.object(result.output)
             let data = object.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
             let options = data.flatMap { try? JSONDecoder().decode(DisplayOptions.self, from: $0) }
             Task { @MainActor in
-                guard let self, request == self.displayRequest else { return }
+                HelperTrace.record(trace, .mainActor, status: result.status)
+                guard let self else { HelperTrace.record(trace, .uiOwnerGone); return }
+                guard request == self.displayRequest else { HelperTrace.record(trace, .uiSuperseded); return }
                 self.displayLoading = false
                 if result.status == 0, let options, options.ok {
+                    HelperTrace.record(trace, .uiApplied)
                     self.displayOptions = options
                     let selectedStillAvailable = options.presets.contains(where: { $0.id == self.selectedPresetID && $0.available })
                     if !self.displayDefaultsChosen || !selectedStillAvailable {
@@ -504,6 +700,7 @@ private final class LauncherModel: ObservableObject {
                         self.displayFetchFailed = false
                     }
                 } else {
+                    HelperTrace.record(trace, .uiFailed, status: result.status, timedOut: result.timedOut)
                     self.displayFetchFailed = true
                     self.displayOptions = nil
                     self.displayMessage = Controller.failure(result)
@@ -526,6 +723,11 @@ private final class LauncherModel: ObservableObject {
                 isError = true
                 return
             }
+            guard !developerConsolePreferenceChosen || !selectedDeveloperConsole || status?.console_supported == true else {
+                notification = status?.console_message ?? "Developer console is unavailable for this installation."
+                isError = true
+                return
+            }
             persistDisplaySelection()
         }
         busy = true
@@ -545,14 +747,17 @@ private final class LauncherModel: ObservableObject {
         displayFetchFailed = false
         notification = command == "setup" ? "Downloading and preparing the runtime and Steam. This can take several minutes. Keep Origins Launcher open and follow any installer windows that appear." : ""
         isError = false
+        let trace = HelperTrace.request(command)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Controller.run([command] + arguments, timeout: ["setup", "configure-game", "install-ui-scaling"].contains(command) ? 1800 : ((command == "play" || command.hasPrefix("display-")) ? 360 : 180))
+            let result = Controller.run([command] + arguments, timeout: ["setup", "configure-game", "install-ui-scaling"].contains(command) ? 1800 : ((command == "play" || command.hasPrefix("display-")) ? 360 : 180), trace: trace)
             let payload = Controller.object(result.output)
             Task { @MainActor in
-                guard let self else { return }
+                HelperTrace.record(trace, .mainActor, status: result.status)
+                guard let self else { HelperTrace.record(trace, .uiOwnerGone); return }
                 self.busy = false
                 self.busyLabel = ""
                 let success = result.status == 0 && payload?["ok"] as? Bool != false
+                HelperTrace.record(trace, success ? .uiApplied : .uiFailed, status: result.status, timedOut: result.timedOut)
                 self.isError = !success
                 if success {
                     self.notification = command == "play" ? "" : (payload?["message"] as? String ?? "Operation completed.")
@@ -740,7 +945,7 @@ private struct DisplaySettingsPanel: View {
                     .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
             Rectangle().fill(Palette.line).frame(height: 1)
-            VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 24) {
                 Toggle(isOn: Binding(get: { model.selectedLargeAddressAware }, set: { model.chooseLargeAddressAware($0) })) {
                     Text("4 GB memory support · Experimental")
                         .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.cream)
@@ -748,6 +953,14 @@ private struct DisplaySettingsPanel: View {
                 .toggleStyle(.switch).controlSize(.small).tint(Palette.accent)
                 .disabled(!model.canChangeLargeAddressAware)
                 .help("Allows a larger memory address space for Dragon Age: Origins only. This may help with memory-heavy play; it does not add physical RAM. Changes apply on the next launch.")
+                Spacer(minLength: 12)
+                Toggle(isOn: Binding(get: { model.selectedDeveloperConsole }, set: { model.chooseDeveloperConsole($0) })) {
+                    Text("Developer console")
+                        .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.cream)
+                }
+                .toggleStyle(.switch).controlSize(.small).tint(Palette.accent)
+                .disabled(!model.canChangeDeveloperConsole)
+                .help("Applies when you press Play. The default console key is grave/backtick; its position varies by keyboard. Console text may be invisible. Launch options you set separately in Steam still apply.")
             }
 
         }

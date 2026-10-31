@@ -399,6 +399,20 @@ class Controller:
                         or audio_identity["enabled"] != audio_mode["audio_fix_enabled"]
                         or audio_identity.get("component_sha256") != audio_hash):
                     return False
+            # Reverb changes the audio path independently of the timing fix.
+            from reverb_fix import status as reverb_fix_status
+            reverb_mode = reverb_fix_status(self, game)
+            if reverb_mode.get("reverb_fix_pending") or (reverb_mode.get("reverb_fix_managed") and not reverb_mode["reverb_fix_supported"]):
+                return False
+            reverb_identity = report.get("reverb_identity")
+            if reverb_mode["reverb_fix_enabled"] or reverb_identity is not None:
+                reverb_file = Path(game["exe"]).parent / "winmm.dll"
+                reverb_hash = hashlib.sha256(reverb_file.read_bytes()).hexdigest() if reverb_mode["reverb_fix_enabled"] else None
+                if (not isinstance(reverb_identity, dict)
+                        or type(reverb_identity.get("enabled")) is not bool
+                        or reverb_identity["enabled"] != reverb_mode["reverb_fix_enabled"]
+                        or reverb_identity.get("component_sha256") != reverb_hash):
+                    return False
             # A display experiment is not validated merely because its numeric
             # resolution matches an older report. Recovery must finish first.
             display_state = self.data / "display-settings.json"
@@ -447,6 +461,8 @@ class Controller:
     def status(self) -> dict:
         from large_address import status as large_address_status
         from audio_fix import status as audio_fix_status
+        from reverb_fix import status as reverb_fix_status
+        from developer_console import status as console_status
         supported = platform_status()
         state = self.state()
         games = discover_games(self.prefix) if self.prefix_ready() else []
@@ -522,7 +538,8 @@ class Controller:
                     phase=phase, message=message, log_path=str(self.logs),
                     data_path=str(self.prefix if self.prefix_ready() else self.data),
                     installed_editions=games, compatibility_verified=verified,
-                    **large_address_status(self), **audio_fix_status(self, game), **maintenance_summary)
+                    **large_address_status(self), **audio_fix_status(self, game), **reverb_fix_status(self, game),
+                    **console_status(self, game), **maintenance_summary)
 
     def launch_wss(self, args: list[str], name: str) -> tuple[subprocess.Popen, Path]:
         self.require_runtime()
@@ -719,7 +736,7 @@ class Controller:
                        "plugplay.exe", "svchost.exe", "rpcss.exe",
                        "conhost.exe", "winemenubuilder.exe")
             wine_root = str(self.contents / "SharedSupport/wine") + "/"
-            batch_name = r"(?:play|steam|memory-mode-steam-shutdown|audio-mode-steam-shutdown)-[0-9]+\.bat"
+            batch_name = r"(?:play|steam|memory-mode-steam-shutdown|audio-mode-steam-shutdown|reverb-mode-steam-shutdown)-[0-9]+\.bat"
             batch_root = re.escape(str(self.prefix / "drive_c/dao-support"))
             windows_batch = re.compile(
                 r'^"?C:\\windows\\system32\\cmd\.exe"?\s+/s/c\s+"?C:\\dao-support\\'
@@ -793,7 +810,47 @@ class Controller:
         except (AudioFixError, OSError) as exc:
             raise DAOError(str(exc)) from exc
 
-    def play(self, appid=None, preset=None, ui_size="comfortable", large_address_aware=None):
+    def prepare_reverb_fix(self, game):
+        """Maintain the game-only reverb component beside the regular audio fix.
+
+        The manager preserves existing winmm mods and only removes an owned
+        component if its game/runtime is no longer supported. It does not
+        change the DirectSound component, its safeguards or FMOD block size.
+        """
+        from reverb_fix import ReverbFixError, status as reverb_status, set_enabled
+        observed = reverb_status(self, game)
+        enabled = observed["reverb_fix_supported"]
+        if not enabled and not observed["reverb_fix_managed"]:
+            return
+        if observed["reverb_fix_enabled"] == enabled and not observed.get("reverb_fix_pending", False):
+            return
+        try:
+            self._close_compatibility_session("reverb compatibility", "reverb-mode-steam-shutdown")
+            set_enabled(self, game, enabled)
+        except (ReverbFixError, OSError) as exc:
+            raise DAOError(str(exc)) from exc
+
+    def prepare_developer_console(self, game, enabled):
+        from developer_console import DeveloperConsoleError, prepare
+        if enabled is not None:
+            # A launcher already open has cached its XML and cannot pick up a
+            # changed argument. Use the strict inventory before any mutation.
+            from large_address import LargeAddressError, active_wine_processes
+            try:
+                running = active_wine_processes(self)
+            except LargeAddressError as exc:
+                raise DAOError("Could not confirm that Dragon Age is closed. The developer console setting was not changed.") from exc
+            if any(windows_process_is(command, image)
+                   for _, _, command in running
+                   for image in ("DAOrigins.exe", "DAOriginsLauncher.exe", "DAOriginsConfig.exe")):
+                raise DAOError("Close Dragon Age and its official launcher or configuration window before applying the developer console setting.")
+        try:
+            return prepare(self, game, enabled)
+        except (DeveloperConsoleError, OSError) as exc:
+            raise DAOError(str(exc)) from exc
+
+    def play(self, appid=None, preset=None, ui_size="comfortable", large_address_aware=None,
+             developer_console=None):
         from steam_maintenance import SteamMaintenance
         SteamMaintenance(self).cancel("Game launch requested; startup follow-up stopped.", force=True)
         self.require_platform()
@@ -813,13 +870,15 @@ class Controller:
         from game_setup import configuration_status
         if not configuration_status(self, game)["ready"]:
             raise DAOError("Choose Finish game setup before playing. Complete the supplied prerequisite installers and close the game configuration window.")
+        console_arguments = self.prepare_developer_console(game, developer_console)
         if large_address_aware is not None:
             self.prepare_large_address(large_address_aware)
         self.prepare_audio_fix(game)
+        self.prepare_reverb_fix(game)
         if preset:
             from display_settings import DisplaySettings
             DisplaySettings(self, appid=game["appid"]).prepare_for_play(preset, ui_size)
-        result = self.steam_command(["-applaunch", game["appid"]], "play")
+        result = self.steam_command(["-applaunch", game["appid"], *console_arguments], "play")
         self.save_state(selected_appid=game["appid"])
         result["message"] = ("Game launch requested. You confirmed gameplay, audio and save/reload on this Mac." if self.compatibility_verified(game)
                              else "Game launch requested. Steam may run prerequisite installers. Gameplay compatibility has not yet been verified.")
@@ -877,6 +936,7 @@ def main(argv=None):
     parser.add_argument("--preset")
     parser.add_argument("--ui-size", choices=["comfortable", "larger"], default="comfortable")
     parser.add_argument("--large-address-aware", choices=["on", "off"], default=None)
+    parser.add_argument("--developer-console", choices=["on", "off"], default=None)
     args = parser.parse_args(argv)
     try:
         c = Controller(project_root())
@@ -896,7 +956,8 @@ def main(argv=None):
                 elif args.command == "install-game": result = c.install_game(args.appid or "47810")
                 elif args.command == "play":
                     result = c.play(args.appid, preset=args.preset, ui_size=args.ui_size,
-                                    large_address_aware=None if args.large_address_aware is None else args.large_address_aware == "on")
+                                    large_address_aware=None if args.large_address_aware is None else args.large_address_aware == "on",
+                                    developer_console=None if args.developer_console is None else args.developer_console == "on")
                 elif args.command == "stop": result = c.stop()
                 elif args.command in ("configure-game", "install-ui-scaling"):
                     c.require_platform()

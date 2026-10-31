@@ -10,6 +10,7 @@ import tempfile
 import zipfile
 from audit_release import ARTWORK_NOTICE, NOTICE_FILES, RESERVED_IMAGES, audit
 from bundle_audio import validate as validate_audio
+from bundle_reverb import validate as validate_reverb
 
 
 OFFICIAL_ARTWORK_CREDIT = 'Aberrant Ink'
@@ -124,8 +125,24 @@ def package(root, output, app=None, public=False, unsigned_beta=False):
         validate_artwork_bundle(app, root)
         # New source trees that ship the audio component must retain both its
         # exact DLL and complete matching source in every distributed app.
-        if (root / "audio-compat/component.json").exists():
+        for name in ("VERSION", "dependency-manifest.json"):
+            source_file = root / name
+            if source_file.exists():
+                bundled_file = app / "Contents/Resources" / name
+                if (bundled_file.is_symlink() or not bundled_file.is_file()
+                        or bundled_file.read_bytes() != source_file.read_bytes()):
+                    raise ValueError(f"App resource differs from source: {name}; rebuild the app")
+        # Bind all shipped Python helpers, including their orchestration code,
+        # to this source export, not merely to the native component hashes.
+        for source_file in (root / "source").glob("*.py"):
+            bundled_file = app / "Contents/Resources" / source_file.name
+            if (bundled_file.is_symlink() or not bundled_file.is_file()
+                    or bundled_file.read_bytes() != source_file.read_bytes()):
+                raise ValueError(f"App helper differs from source: {source_file.name}; rebuild the app")
+        if (root / "audio-compat/component.json").exists() or (root / "source/audio_fix.py").exists():
             validate_audio(root / "audio-compat", app / "Contents/Resources/audio-compat", bundled=True)
+        if (root / "reverb-compat/component.json").exists() or (root / "source/reverb_fix.py").exists():
+            validate_reverb(root / "reverb-compat", app / "Contents/Resources/reverb-compat", bundled=True)
         # Refuse a stale bundle before writing any release artifacts: its licence
         # and scope notices must match the source accompanying this release.
         for name in NOTICE_FILES:
@@ -174,13 +191,15 @@ def package(root, output, app=None, public=False, unsigned_beta=False):
                 shutil.copyfile(root / name, stage / name)
             subprocess.run(['/usr/bin/hdiutil', 'create', '-volname', 'Origins Launcher', '-srcfolder', str(stage), '-format', 'UDZO', str(dmg)], check=True)
         products.append(dmg)
-        if (root / "audio-compat/component.json").exists():
-            audio_manifest = json.loads((root / "audio-compat/component.json").read_text())
-            name = audio_manifest["corresponding_source"]["file"]
+        for component in ("audio-compat", "reverb-compat"):
+            if not (root / component / "component.json").exists():
+                continue
+            manifest = json.loads((root / component / "component.json").read_text())
+            name = manifest["corresponding_source"]["file"]
             source_archive = output / name
             if source_archive.exists():
-                raise ValueError("Audio source archive already exists")
-            shutil.copyfile(app / "Contents/Resources/audio-compat" / name, source_archive)
+                raise ValueError("Component source archive already exists")
+            shutil.copyfile(app / "Contents/Resources" / component / name, source_archive)
             products.append(source_archive)
     (output / 'SOURCE-MANIFEST.json').write_text(json.dumps(entries, indent=2) + '\n')
     products.append(output / 'SOURCE-MANIFEST.json')

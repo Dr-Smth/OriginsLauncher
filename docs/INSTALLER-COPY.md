@@ -4,6 +4,19 @@ Copy snapshot: **0.2.0-beta.6** release-candidate source, 26 October 2026. The A
 
 ## Scope and reading guide
 
+Development-build addition (`0.2.0-beta.8-dev.1`, 29 October 2026): the main window
+now includes the following console control. The older catalogue below retains
+its stated snapshot scope; this addition is not in the published beta.7 app.
+
+| Kind | Exact text | Source |
+|---|---|---|
+| Switch | Developer console | [`source/Launcher.swift`](../source/Launcher.swift) |
+| Tooltip | Applies when you press Play. The default console key is grave/backtick; its position varies by keyboard. Console text may be invisible. Launch options you set separately in Steam still apply. | [`source/Launcher.swift`](../source/Launcher.swift) |
+
+Console status and error wording is maintained in
+[`source/developer_console.py`](../source/developer_console.py) and the console
+preparation method in [`source/daoctl.py`](../source/daoctl.py).
+
 - The main sections follow installation and first use, including the pre-Steam screen, dependency and licence disclosures, optional UI scaling, normal controls, progress text and help. The appendices include authored status messages and failure copy that can be returned by the bundled controller.
 - Text is transcribed from the current source. Curly placeholders such as `{log.name}` represent dynamic Python values. Swift placeholders are preserved as `\(expression)`; those expressions are replaced by a value at runtime and are not printed literally. Links are listed with their exact destination.
 - Source references are relative to the repository root and describe this snapshot; line numbers may move after edits. Repeated text can appear in several conditions. Some backend entries are diagnostic or command-line-only; they are marked separately from the native screen copy.

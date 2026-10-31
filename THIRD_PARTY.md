@@ -44,6 +44,20 @@ See [component source and build instructions](audio-compat/README.md) and its
 redistributed binaries. A reference to upstream source alone is not the source
 package for this modified build.
 
+## Built-in DA:O reverb compatibility
+
+Beta.8 adds a modified Wine 11.0 `winmm.dll`, separately licensed under
+**LGPL-2.1-or-later**. It supplies a DA:O-specific replacement for the identified
+FMOD SFX reverb callback, preserving dry audio and omitting the wet reverb effect.
+It uses independently written compatibility code; no game or FMOD binary is
+redistributed or replaced on disk.
+
+The component is confined to the verified game process. It does not change
+other games, macOS audio settings or the existing timing safeguard. Its complete
+matching source, licence, manifests and notices are included under
+`Contents/Resources/reverb-compat/`. The same complete source archive accompanies
+the installer. See [reverb source and build instructions](reverb-compat/README.md).
+
 ## Downloaded during setup, not shipped in our app or source archive
 
 | Component | Official source | Licence/provenance note |
